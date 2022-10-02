@@ -1,0 +1,5 @@
+<Bindings>
+	<Binding name="Lock/Unlock Item" category = "Item Lock">
+		SlashCmdList["ITEMLOCK"]("lock")
+	</Binding>
+</Bindings>

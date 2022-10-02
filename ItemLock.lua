@@ -1,9 +1,6 @@
 local name, ns = ...
 
-function ns.Print(...) print("|cFFFF8400" .. name .. "|r:", ...) end
-
-local lockItemButton = CreateFrame("BUTTON", "LockItemButton")
-SetBindingClick("ALT-L", lockItemButton:GetName(), "ALT-L")
+function ns.Print(...) print("|cFFFF8400[" .. name .. "]|r", ...) end
 
 if (LockedItems == nil) then
   LockedItems = {}
@@ -12,6 +9,8 @@ end
 if (LockedItemNames == nil) then
   LockedItemNames = {}
 end
+
+IsMerchantOpen = false
 
 local function LockItem(itemID)
   local item = Item:CreateFromItemID(itemID);
@@ -28,31 +27,52 @@ local function UnlockItem(itemID)
 end
 
 local function SetupSlotOverlay(slot)
-  if slot.lockItemsOverlay then
-    return slot.lockItemsOverlay
+  if slot.lockItemsInteractionOverlay then
+    return slot.lockItemsInteractionOverlay, slot.lockItemsOverlay, slot.lockItemsOverlayTexture
   end
 
-  local overlay = CreateFrame("FRAME", nil, slot)
-  overlay:SetFrameLevel(4)
-  overlay:SetAllPoints()
+  slot.lockItemsInteractionOverlay = CreateFrame("FRAME", nil, slot)
+  slot.lockItemsInteractionOverlay:SetFrameLevel(0)
+  slot.lockItemsInteractionOverlay:SetSize(slot:GetSize())
+  slot.lockItemsInteractionOverlay:SetPoint("CENTER")
+  slot.lockItemsInteractionOverlay:SetScript("OnMouseDown", function(self, button) end)
 
-  slot.lockItemsOverlay = overlay:CreateTexture(nil, "OVERLAY")
-  slot.lockItemsOverlay:SetSize(25, 25)
-  slot.lockItemsOverlay:SetPoint('CENTER')
-  slot.lockItemsOverlay:SetAtlas("UI-CharacterCreate-PadLock")
-  slot.lockItemsOverlay:Hide()
+  slot.lockItemsOverlay = CreateFrame("FRAME", nil, slot, "BackdropTemplate")
+  slot.lockItemsOverlay:SetFrameLevel(20)
+  slot.lockItemsOverlay:SetSize(slot:GetSize())
+  slot.lockItemsOverlay:SetPoint("CENTER")
+  slot.lockItemsOverlay:SetBackdrop({
+    bgFile = "Interface/Tooltips/UI-Tooltip-Background",
+    insets = { left = 0, right = 0, top = 0, bottom = 0 },
+  })
+  slot.lockItemsOverlay:SetBackdropColor(0, 0, 0, 0)
 
-  return slot.lockItemsOverlay
+  slot.lockItemsOverlayTexture = slot.lockItemsOverlay:CreateTexture(nil, "OVERLAY")
+  slot.lockItemsOverlayTexture:SetSize(20, 20)
+  slot.lockItemsOverlayTexture:SetPoint("BOTTOMLEFT")
+  slot.lockItemsOverlayTexture:SetAtlas("UI-CharacterCreate-PadLock")
+
+  return slot.lockItemsInteractionOverlay, slot.lockItemsOverlay, slot.lockItemsOverlayTexture
 end
 
-local function ShowItemLocked(slot)
-  local overlay = SetupSlotOverlay(slot)
-  overlay:Show()
+local function SetupItemUnlockedSlot(slot)
+  local interactionOverlay, lockOverlay, lockOverlayTexture = SetupSlotOverlay(slot)
+  interactionOverlay:SetFrameLevel(0)
+  lockOverlay:SetBackdropColor(0, 0, 0, 0)
+  lockOverlayTexture:Hide()
 end
 
-local function ShowItemUnlocked(slot)
-  local overlay = SetupSlotOverlay(slot)
-  overlay:Hide()
+local function SetupItemLockedSlot(slot)
+  local interactionOverlay, lockOverlay, lockOverlayTexture = SetupSlotOverlay(slot)
+
+  if IsMerchantOpen then
+    interactionOverlay:SetFrameLevel(20)
+  else
+    interactionOverlay:SetFrameLevel(0)
+  end
+
+  lockOverlay:SetBackdropColor(0, 0, 0, 0.5)
+  lockOverlayTexture:Show()
 end
 
 local function UpdateBagSlot(bagID, slot)
@@ -60,22 +80,22 @@ local function UpdateBagSlot(bagID, slot)
   local item = Item:CreateFromBagAndSlot(bagID, slotID)
 
   if item:IsItemEmpty() then
-    ShowItemUnlocked(slot)
+    SetupItemUnlockedSlot(slot)
     return
   end
 
   if (LockedItems[item:GetItemID()]) then
-    ShowItemLocked(slot)
+    SetupItemLockedSlot(slot)
   else
-    ShowItemUnlocked(slot)
+    SetupItemUnlockedSlot(slot)
   end
 end
 
-local function UpdateSlotsWithItem(itemID)
+local function UpdateSlots()
   for i = 0, NUM_BAG_SLOTS do
     for j = 1, GetContainerNumSlots(i) do
       local containerItemID = GetContainerItemID(i, j)
-      if (containerItemID == itemID) then
+      if (LockedItems[containerItemID] ~= nil) then
         local containerFrameIndex = i + 1
         local itemIndex = GetContainerNumSlots(i) - (j - 1)
 
@@ -99,7 +119,13 @@ local function UpdateSlotsWithItem(itemID)
   end
 end
 
-local function HandleLockItem(itemLink)
+local function toggleCurrentItemLock()
+  local _, itemLink = GameTooltip:GetItem();
+
+  if (itemLink == nil) then
+    return
+  end
+
   local itemID = tonumber(strmatch(itemLink, "item:(%d+):"));
 
   if (itemID == nil) then
@@ -108,22 +134,14 @@ local function HandleLockItem(itemLink)
 
   if (LockedItems[itemID]) then
     UnlockItem(itemID);
-    UpdateSlotsWithItem(itemID);
+    UpdateSlots();
   else
     LockItem(itemID);
-    UpdateSlotsWithItem(itemID);
+    UpdateSlots();
   end
 end
 
-lockItemButton:SetScript("OnClick", function(self, keyBinding)
-  local _, itemLink = GameTooltip:GetItem();
-
-  if (itemLink) then
-    HandleLockItem(itemLink)
-  end
-end)
-
--- Merchant Buyback
+-- Events
 local deleteWarningFrame = CreateFrame("FRAME", "LockedItemsDeleteWarningHandler");
 deleteWarningFrame:RegisterEvent("DELETE_ITEM_CONFIRM");
 deleteWarningFrame:SetScript("OnEvent", function(self, event, itemName)
@@ -133,6 +151,19 @@ deleteWarningFrame:SetScript("OnEvent", function(self, event, itemName)
     ns.Print("|cFFFF0000 WARNING - DELETING A LOCKED ITEM |r", item:GetItemLink());
   end
 end);
+
+local merchantFrame = CreateFrame("FRAME", "LockedItemsMerchantHandler");
+merchantFrame:RegisterEvent("MERCHANT_CLOSED")
+merchantFrame:RegisterEvent("MERCHANT_SHOW")
+merchantFrame:SetScript("OnEvent", function(self, event, arg)
+  if (event == "MERCHANT_CLOSED") then
+    IsMerchantOpen = false
+    UpdateSlots()
+  else
+    IsMerchantOpen = true
+    UpdateSlots()
+  end
+end)
 
 -- Default Bags
 hooksecurefunc("ContainerFrame_Update", function(bag)
@@ -154,15 +185,20 @@ end
 
 -- slash cmds
 _G["SLASH_" .. name:upper() .. "1"] = "/il"
+
 SlashCmdList[name:upper()] = function(cmd)
   cmd = cmd:trim()
 
-  if cmd == "ls" then
+  if cmd == "list" or cmd == "ls" then
     for itemId, isLocked in pairs(LockedItems) do
       if (isLocked) then
         local item = Item:CreateFromItemID(itemId)
         ns.Print(item:GetItemLink())
       end
     end
+  end
+
+  if cmd == "lock" then
+    toggleCurrentItemLock()
   end
 end
