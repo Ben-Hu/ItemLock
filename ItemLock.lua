@@ -10,17 +10,21 @@ if (LockedItemNames == nil) then
   LockedItemNames = {}
 end
 
+if (Config == nil) then
+  Config = { sort_lock = false }
+end
+
 IsMerchantOpen = false
 
 local function LockItem(itemID)
-  local item = Item:CreateFromItemID(itemID);
+  local item = Item:CreateFromItemID(itemID)
   LockedItems[itemID] = true;
   LockedItemNames[item:GetItemName()] = itemID;
   ns.Print("locked", item:GetItemLink())
 end
 
 local function UnlockItem(itemID)
-  local item = Item:CreateFromItemID(itemID);
+  local item = Item:CreateFromItemID(itemID)
   LockedItems[itemID] = false;
   LockedItemNames[item:GetItemName()] = itemID;
   ns.Print("unlocked", item:GetItemLink())
@@ -81,7 +85,6 @@ local function UpdateBagSlot(bagID, slot)
 
   if item:IsItemEmpty() then
     SetupItemUnlockedSlot(slot)
-    return
   end
 
   if (LockedItems[item:GetItemID()]) then
@@ -119,49 +122,58 @@ local function UpdateSlots()
   end
 end
 
-local function toggleCurrentItemLock()
-  local _, itemLink = GameTooltip:GetItem();
+local function getCurrentItemID()
+  local _, itemLink = GameTooltip:GetItem()
 
-  if (itemLink == nil) then
-    return
+  if itemLink == nil then
+    return nil
   end
 
-  local itemID = tonumber(strmatch(itemLink, "item:(%d+):"));
+  return tonumber(strmatch(itemLink, "item:(%d+):"))
+end
 
-  if (itemID == nil) then
+local function toggleCurrentItemLock()
+  local itemID = getCurrentItemID()
+
+  if itemID == nil then
     return
   end
 
   if (LockedItems[itemID]) then
-    UnlockItem(itemID);
-    UpdateSlots();
+    UnlockItem(itemID)
   else
-    LockItem(itemID);
-    UpdateSlots();
+    LockItem(itemID)
   end
+
+  UpdateSlots()
 end
 
 -- Events
-local deleteWarningFrame = CreateFrame("FRAME", "LockedItemsDeleteWarningHandler");
-deleteWarningFrame:RegisterEvent("DELETE_ITEM_CONFIRM");
-deleteWarningFrame:SetScript("OnEvent", function(self, event, itemName)
+local function handleDeleteItemConfirm(...)
+  local itemName = ...
   local itemID = LockedItemNames[itemName]
   if (itemID and LockedItems[itemID]) then
-    local item = Item:CreateFromItemID(itemID);
-    ns.Print("|cFFFF0000 WARNING - DELETING A LOCKED ITEM |r", item:GetItemLink());
+    local item = Item:CreateFromItemID(itemID)
+    ns.Print("|cFFFF0000 WARNING - DELETING A LOCKED ITEM |r", item:GetItemLink())
   end
-end);
+end
 
-local merchantFrame = CreateFrame("FRAME", "LockedItemsMerchantHandler");
-merchantFrame:RegisterEvent("MERCHANT_CLOSED")
-merchantFrame:RegisterEvent("MERCHANT_SHOW")
-merchantFrame:SetScript("OnEvent", function(self, event, arg)
-  if (event == "MERCHANT_CLOSED") then
-    IsMerchantOpen = false
-    UpdateSlots()
-  else
-    IsMerchantOpen = true
-    UpdateSlots()
+local function handleMerchantEvent(isMerchantOpen)
+  IsMerchantOpen = isMerchantOpen
+  UpdateSlots()
+end
+
+local itemLockFrame = CreateFrame("FRAME", "ItemLockFrame")
+itemLockFrame:RegisterEvent("DELETE_ITEM_CONFIRM")
+itemLockFrame:RegisterEvent("MERCHANT_CLOSED")
+itemLockFrame:RegisterEvent("MERCHANT_SHOW")
+itemLockFrame:SetScript("OnEvent", function(self, event, ...)
+  if event == "DELETE_ITEM_CONFIRM" then
+    handleDeleteItemConfirm(...)
+  elseif event == "MERCHANT_CLOSED" then
+    handleMerchantEvent(false)
+  elseif event == "MERCHANT_SHOW" then
+    handleMerchantEvent(true)
   end
 end)
 
@@ -181,6 +193,30 @@ if IsAddOnLoaded("Bagnon") then
     local bagID = slot:GetBag()
     UpdateBagSlot(bagID, slot)
   end)
+
+  if Bagnon and Bagnon.Sorting and Bagnon.Sorting.GetOrder then
+    local GetOrder = Bagnon.Sorting.GetOrder
+
+    function Bagnon.Sorting:GetOrder(spaces, family)
+      if Config["sort_lock"] then
+        local newSpaces = {}
+
+        for _, space in pairs(spaces) do
+          if space.item == nil or not (LockedItems[space.item.id] or false) then
+            table.insert(newSpaces, space)
+          else
+            space.item.sorted = true
+          end
+        end
+
+        return GetOrder(self, newSpaces, family)
+      else
+        return GetOrder(self, spaces, family)
+      end
+    end
+
+    ns.Print("custom sorting initialized")
+  end
 end
 
 -- slash cmds
@@ -200,5 +236,26 @@ SlashCmdList[name:upper()] = function(cmd)
 
   if cmd == "lock" then
     toggleCurrentItemLock()
+  end
+
+  if cmd == "sort_lock" then
+    if Config["sort_lock"] then
+      Config["sort_lock"] = false
+      ns.Print("Sort locking disabled")
+    else
+      Config["sort_lock"] = true
+      ns.Print("Sort locking enabled")
+    end
+  end
+
+  if cmd == "config" then
+    for key, value in pairs(Config) do
+      ns.Print(key, ": ", value)
+    end
+  end
+
+  if cmd == "reset" then
+    LockedItems = {}
+    LockedItemNames = {}
   end
 end
