@@ -10,8 +10,12 @@ if (LockedItemNames == nil) then
   LockedItemNames = {}
 end
 
+if (EquipmentSetItemIds == nil) then
+  EquipmentSetItemIds = {}
+end
+
 if (Config == nil) then
-  Config = { sort_lock = false }
+  Config = { sort_lock = false, set_lock = true }
 end
 
 IsMerchantOpen = false
@@ -27,7 +31,41 @@ local function UnlockItem(itemID)
   local item = Item:CreateFromItemID(itemID)
   LockedItems[itemID] = false;
   LockedItemNames[item:GetItemName()] = itemID;
-  ns.Print("unlocked", item:GetItemLink())
+  if Config["set_lock"] and EquipmentSetItemIds[itemID] then
+    ns.Print(
+      item:GetItemLink(),
+      " remains locked since set_lock is enabled and is part of a set. ",
+      "It will be unlocked when set_lock is disabled."
+    )
+  else
+    ns.Print("unlocked", item:GetItemLink())
+  end
+end
+
+local function isItemLocked(itemID)
+  if Config["set_lock"] then
+    return (EquipmentSetItemIds[itemID] or false) or (LockedItems[itemID] or false)
+  else
+    return (LockedItems[itemID] or false)
+  end
+end
+
+local function getLockedItemIDs()
+  local lockedItemIDs = {}
+
+  for itemID, isLocked in pairs(LockedItems) do
+    if (isLocked) then
+      lockedItemIDs[itemID] = true
+    end
+  end
+
+  if Config["set_lock"] then
+    for itemID, _ in pairs(EquipmentSetItemIds) do
+      lockedItemIDs[itemID] = true
+    end
+  end
+
+  return lockedItemIDs
 end
 
 local function SetupSlotOverlay(slot)
@@ -87,7 +125,7 @@ local function UpdateBagSlot(bagID, slot)
     SetupItemUnlockedSlot(slot)
   end
 
-  if (LockedItems[item:GetItemID()]) then
+  if (isItemLocked(item:GetItemID())) then
     SetupItemLockedSlot(slot)
   else
     SetupItemUnlockedSlot(slot)
@@ -97,8 +135,7 @@ end
 local function UpdateSlots()
   for i = 0, NUM_BAG_SLOTS do
     for j = 1, GetContainerNumSlots(i) do
-      local containerItemID = GetContainerItemID(i, j)
-      if (LockedItems[containerItemID] ~= nil) then
+      if GetContainerItemID(i, j) then
         local containerFrameIndex = i + 1
         local itemIndex = GetContainerNumSlots(i) - (j - 1)
 
@@ -139,7 +176,7 @@ local function toggleCurrentItemLock()
     return
   end
 
-  if (LockedItems[itemID]) then
+  if isItemLocked(itemID) then
     UnlockItem(itemID)
   else
     LockItem(itemID)
@@ -152,7 +189,7 @@ end
 local function handleDeleteItemConfirm(...)
   local itemName = ...
   local itemID = LockedItemNames[itemName]
-  if (itemID and LockedItems[itemID]) then
+  if itemID and isItemLocked(itemID) then
     local item = Item:CreateFromItemID(itemID)
     ns.Print("|cFFFF0000 WARNING - DELETING A LOCKED ITEM |r", item:GetItemLink())
   end
@@ -163,10 +200,28 @@ local function handleMerchantEvent(isMerchantOpen)
   UpdateSlots()
 end
 
+local function loadEquipmentSetItems()
+  EquipmentSetItemIds = {}
+  for i = 0, C_EquipmentSet.GetNumEquipmentSets() do
+    local itemArray = C_EquipmentSet.GetItemIDs(i)
+    for j = 1, 19 do
+      if itemArray and itemArray[j] then
+        EquipmentSetItemIds[itemArray[j]] = true
+      end
+    end
+  end
+  UpdateSlots()
+end
+
+local function handleEquipmentSetsChanged()
+  loadEquipmentSetItems()
+end
+
 local itemLockFrame = CreateFrame("FRAME", "ItemLockFrame")
 itemLockFrame:RegisterEvent("DELETE_ITEM_CONFIRM")
 itemLockFrame:RegisterEvent("MERCHANT_CLOSED")
 itemLockFrame:RegisterEvent("MERCHANT_SHOW")
+itemLockFrame:RegisterEvent("EQUIPMENT_SETS_CHANGED")
 itemLockFrame:SetScript("OnEvent", function(self, event, ...)
   if event == "DELETE_ITEM_CONFIRM" then
     handleDeleteItemConfirm(...)
@@ -174,6 +229,8 @@ itemLockFrame:SetScript("OnEvent", function(self, event, ...)
     handleMerchantEvent(false)
   elseif event == "MERCHANT_SHOW" then
     handleMerchantEvent(true)
+  elseif event == "EQUIPMENT_SETS_CHANGED" then
+    handleEquipmentSetsChanged()
   end
 end)
 
@@ -202,7 +259,7 @@ if IsAddOnLoaded("Bagnon") then
         local newSpaces = {}
 
         for _, space in pairs(spaces) do
-          if space.item == nil or not (LockedItems[space.item.id] or false) then
+          if space.item == nil or not (isItemLocked(space.item.id)) then
             table.insert(newSpaces, space)
           else
             space.item.sorted = true
@@ -219,18 +276,25 @@ if IsAddOnLoaded("Bagnon") then
   end
 end
 
+if Config["set_lock"] then
+  loadEquipmentSetItems()
+end
+
 -- slash cmds
+local function toggleConfig(key)
+  Config[key] = not (Config[key] or false)
+  ns.Print(key, ": ", Config[key])
+end
+
 _G["SLASH_" .. name:upper() .. "1"] = "/il"
 
 SlashCmdList[name:upper()] = function(cmd)
   cmd = cmd:trim()
 
   if cmd == "list" or cmd == "ls" then
-    for itemId, isLocked in pairs(LockedItems) do
-      if (isLocked) then
-        local item = Item:CreateFromItemID(itemId)
-        ns.Print(item:GetItemLink())
-      end
+    for itemId in pairs(getLockedItemIDs()) do
+      local item = Item:CreateFromItemID(itemId)
+      ns.Print(item:GetItemLink())
     end
   end
 
@@ -239,13 +303,12 @@ SlashCmdList[name:upper()] = function(cmd)
   end
 
   if cmd == "sort_lock" then
-    if Config["sort_lock"] then
-      Config["sort_lock"] = false
-      ns.Print("Sort locking disabled")
-    else
-      Config["sort_lock"] = true
-      ns.Print("Sort locking enabled")
-    end
+    toggleConfig("sort_lock")
+  end
+
+  if cmd == "set_lock" then
+    toggleConfig("set_lock")
+    loadEquipmentSetItems()
   end
 
   if cmd == "config" then
