@@ -112,7 +112,7 @@ local function UpdateSlots()
           end
 
           containerFrameIndex = ceil(slotOffset / 36)
-          itemIndex = slotOffset % 36
+          itemIndex = slotOffset - (containerFrameIndex - 1) * 36
         end
 
         local slot = _G["ContainerFrame" .. containerFrameIndex .. "Item" .. itemIndex]
