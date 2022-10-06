@@ -244,6 +244,42 @@ hooksecurefunc("ContainerFrame_Update", function(bag)
   end
 end)
 
+local function setupCustomSorting()
+  local GetOrder = Bagnon.Sorting.GetOrder
+
+  function Bagnon.Sorting:GetOrder(spaces, family)
+    if Config["sort_lock"] then
+      local newSpaces = {}
+
+      for _, space in pairs(spaces) do
+        if space.item == nil or not (isItemLocked(space.item.id)) then
+          table.insert(newSpaces, space)
+        else
+          space.item.sorted = true
+        end
+      end
+
+      return GetOrder(self, newSpaces, family)
+    else
+      return GetOrder(self, spaces, family)
+    end
+  end
+
+  local sortBags = _G.SortBags
+
+  if _G.SortBags then
+    function _G.SortBags()
+      if Config["sort_lock"] then
+        Bagnon.Sorting:Start(UnitName('player'), Bagnon.InventoryFrame.Bags)
+      else
+        sortBags()
+      end
+    end
+  end
+
+  ns.Print("custom sorting initialized")
+end
+
 -- Bagnon
 if IsAddOnLoaded("Bagnon") then
   hooksecurefunc(Bagnon.Item, "Update", function(slot)
@@ -251,29 +287,7 @@ if IsAddOnLoaded("Bagnon") then
     UpdateBagSlot(bagID, slot)
   end)
 
-  if Bagnon and Bagnon.Sorting and Bagnon.Sorting.GetOrder then
-    local GetOrder = Bagnon.Sorting.GetOrder
-
-    function Bagnon.Sorting:GetOrder(spaces, family)
-      if Config["sort_lock"] then
-        local newSpaces = {}
-
-        for _, space in pairs(spaces) do
-          if space.item == nil or not (isItemLocked(space.item.id)) then
-            table.insert(newSpaces, space)
-          else
-            space.item.sorted = true
-          end
-        end
-
-        return GetOrder(self, newSpaces, family)
-      else
-        return GetOrder(self, spaces, family)
-      end
-    end
-
-    ns.Print("custom sorting initialized")
-  end
+  setupCustomSorting()
 end
 
 if Config["set_lock"] then
