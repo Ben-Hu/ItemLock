@@ -1,9 +1,11 @@
 ## Interface: 30400
 ## Title: ItemLock
-## Author: uhneb
-## Version: 0.2.0
-## SavedVariables: LockedItems
-## SavedVariables: LockedItemNames
-## SavedVariables: Config
+## Author: Ben Hu
+## Version: 0.3.0
+## SavedVariables: ItemLockDB
 
-ItemLock.lua
+Libs.xml
+
+Core.lua
+
+Modules.xml
