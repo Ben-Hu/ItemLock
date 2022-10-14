@@ -83,6 +83,7 @@ function ItemLock:VARIABLES_LOADED()
 end
 
 function ItemLock:CONFIG_CHANGED()
+  self:LoadEquipmentSets()
   self:UpdateSlots()
 end
 
@@ -114,10 +115,10 @@ function ItemLock:UpdateSlot(bagID, slotFrame)
   local item = Item:CreateFromBagAndSlot(bagID, slotID)
 
   if item:IsItemEmpty() or self.repo:IsItemLocked(item:GetItemID()) ~= true then
-    self.slot:Setup(slotFrame, false, true)
+    self.slot:Setup(slotFrame, false, true, self.config)
   else
     local isInteractable = not self.isMerchantOpen or not self.config:IsVendorProtectionEnabled()
-    self.slot:Setup(slotFrame, true, isInteractable)
+    self.slot:Setup(slotFrame, true, isInteractable, self.config)
   end
 end
 
