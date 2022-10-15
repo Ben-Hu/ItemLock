@@ -49,7 +49,10 @@ function Config:Defaults()
     equipmentSetLock = true,
     lockedBackgroundColor = { 0, 0, 0, 0.5 },
     lockedBorderColor = { 1, 1, 1, 1 },
-    showLockIcon = true
+    lockedBorderThickness = 1.5,
+    showLockIcon = true,
+    lockIconPosition = "BOTTOMLEFT",
+    lockIconSize = 20
   }
 end
 
@@ -70,24 +73,24 @@ function Config:GetOptions()
             desc = "If enabled, locked items will become non-interactive when at a vendor.",
             type = "toggle",
             order = 1,
-            set = setFunc(self.db, "vendorProtection"),
-            get = getFunc(self.db, "vendorProtection")
+            get = getFunc(self.db, "vendorProtection"),
+            set = setFunc(self.db, "vendorProtection")
           },
           sortLock = {
             name = "Item Position Lock",
             desc = "If enabled, items will not be moved by bag sorting. Note: this only works with Bagnon.",
             type = "toggle",
             order = 2,
-            set = setFunc(self.db, "sortLock"),
-            get = getFunc(self.db, "sortLock")
+            get = getFunc(self.db, "sortLock"),
+            set = setFunc(self.db, "sortLock")
           },
           equipmentSetLock = {
             name = "Equipment Set Lock",
             desc = "If enabled, any items in your equipment set will be automatically locked.",
             type = "toggle",
             order = 3,
+            get = getFunc(self.db, "equipmentSetLock"),
             set = setFunc(self.db, "equipmentSetLock"),
-            get = getFunc(self.db, "equipmentSetLock")
           }
         },
       },
@@ -114,13 +117,50 @@ function Config:GetOptions()
             get = getColourFunc(self.db, "lockedBorderColor"),
             set = setColourFunc(self.db, "lockedBorderColor")
           },
+          lockedBorderThickness = {
+            name = "Locked Border Thickness",
+            desc = "The thickness of the border for locked items.",
+            type = "range",
+            min = 0,
+            max = 5,
+            order = 3,
+            get = getFunc(self.db, "lockedBorderThickness"),
+            set = setFunc(self.db, "lockedBorderThickness")
+          },
           showLockIcon = {
             name = "Show Lock Icon",
             desc = "Show the lock icon on locked items.",
             type = "toggle",
-            order = 3,
+            order = 4,
             get = getFunc(self.db, "showLockIcon"),
             set = setFunc(self.db, "showLockIcon")
+          },
+          lockIconPosition = {
+            name = "Lock Icon Position",
+            desc = "The position of the lock icon on locked items.",
+            type = "select",
+            values = {
+              CENTER = "CENTER",
+              LEFT = "LEFT",
+              RIGHT = "RIGHT",
+              BOTTOMLEFT = "BOTTOMLEFT",
+              BOTTOMRIGHT = "BOTTOMRIGHT",
+              TOPLEFT = "TOPLEFT",
+              TOPRIGHT = "TOPRIGHT",
+            },
+            order = 5,
+            get = getFunc(self.db, "lockIconPosition"),
+            set = setFunc(self.db, "lockIconPosition")
+          },
+          lockIconSize = {
+            name = "Lock Icon Size",
+            desc = "The size of the lock icon on locked items.",
+            type = "range",
+            min = 0,
+            max = 50,
+            order = 6,
+            get = getFunc(self.db, "lockIconSize"),
+            set = setFunc(self.db, "lockIconSize")
           }
         }
       },
@@ -165,6 +205,18 @@ function Config:GetLockedBorderColor()
   return getOrDefault(self.db, "lockedBorderColor")
 end
 
+function Config:GetLockedBorderThickness()
+  return getOrDefault(self.db, "lockedBorderThickness")
+end
+
 function Config:IsShowLockIcon()
   return getOrDefault(self.db, "showLockIcon")
+end
+
+function Config:GetLockIconPosition()
+  return getOrDefault(self.db, "lockIconPosition")
+end
+
+function Config:GetLockIconSize()
+  return getOrDefault(self.db, "lockIconSize")
 end

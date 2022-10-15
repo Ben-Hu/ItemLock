@@ -12,18 +12,18 @@ end
 
 function Slot:Init(slotFrame, config)
   local appearanceOverlay = self:CreateAppearanceOverlay(slotFrame)
-  self:CreateAppearanceOverlayTexture(appearanceOverlay, config)
-  self:CreateAppearanceOverlayBorder(appearanceOverlay)
+  self:CreateIconTexture(appearanceOverlay, config)
+  self:CreateBorder(appearanceOverlay, config)
   self:CreateInteractionOverlay(slotFrame)
 end
 
 function Slot:CreateInteractionOverlay(frame)
   if not frame.lockItemsInteractionOverlay then
     frame.lockItemsInteractionOverlay = CreateFrame("FRAME", nil, frame)
-    frame.lockItemsInteractionOverlay:SetFrameLevel(0)
     frame.lockItemsInteractionOverlay:SetSize(frame:GetSize())
     frame.lockItemsInteractionOverlay:SetPoint("CENTER")
     frame.lockItemsInteractionOverlay:SetScript("OnMouseDown", function() end)
+    frame.lockItemsInteractionOverlay:SetFrameLevel(0)
   end
   return frame.lockItemsInteractionOverlay
 end
@@ -31,105 +31,117 @@ end
 function Slot:CreateAppearanceOverlay(frame)
   if not frame.lockItemsAppearanceOverlay then
     frame.lockItemsAppearanceOverlay = CreateFrame("FRAME", nil, frame, "BackdropTemplate")
-    frame.lockItemsAppearanceOverlay:SetFrameLevel(20)
     frame.lockItemsAppearanceOverlay:SetSize(frame:GetSize())
     frame.lockItemsAppearanceOverlay:SetPoint("CENTER")
     frame.lockItemsAppearanceOverlay:SetBackdrop({
       bgFile = "Interface/Tooltips/UI-Tooltip-Background"
     })
+    frame.lockItemsAppearanceOverlay:SetFrameLevel(20)
     frame.lockItemsAppearanceOverlay:SetBackdropColor(0, 0, 0, 0)
   end
   return frame.lockItemsAppearanceOverlay
 end
 
-function Slot:CreateAppearanceOverlayTexture(frame, config)
+function Slot:CreateIconTexture(frame, config)
   if not frame.texture then
+    local size = config:GetLockIconSize()
+    local position = config:GetLockIconPosition()
+
     frame.texture = frame:CreateTexture(nil, "OVERLAY")
-    frame.texture:SetSize(20, 20)
-    frame.texture:SetPoint("BOTTOMLEFT")
     frame.texture:SetAtlas("UI-CharacterCreate-PadLock")
+
+    self:UpdateIconTexture(frame.texture, position, size)
   end
   return frame.texture
 end
 
-function Slot:CreateAppearanceOverlayBorder(frame)
+function Slot:CreateBorder(frame, config)
+  local thickness = config:GetLockedBorderThickness()
+  return self:UpdateBorder(frame, thickness, { 0, 0, 0, 0 })
+end
+
+function Slot:UpdateInteractionOverlay(frame, isInteractable)
+  if isInteractable then
+    frame.lockItemsInteractionOverlay:SetFrameLevel(0)
+  else
+    frame.lockItemsInteractionOverlay:SetFrameLevel(20)
+  end
+end
+
+function Slot:UpdateAppearanceOverlay(frame, color, showLockIcon)
+  if showLockIcon then
+    frame.lockItemsAppearanceOverlay.texture:Show()
+  else
+    frame.lockItemsAppearanceOverlay.texture:Hide()
+  end
+
+  frame.lockItemsAppearanceOverlay:SetBackdropColor(color[1], color[2], color[3], color[4])
+end
+
+function Slot:UpdateIconTexture(texture, position, size)
+  texture:ClearAllPoints()
+  texture:SetPoint(position)
+  texture:SetSize(size, size)
+  return texture
+end
+
+function Slot:UpdateBorder(frame, thickness, color)
   if not frame.border then
     frame.border = {}
+  end
 
-    for i = 0, 3 do
+  local offset = thickness / 2
+
+  for i = 0, 3 do
+    if not frame.border[i] then
       frame.border[i] = frame:CreateLine(nil, "BACKGROUND", nil, 0)
-      frame.border[i]:SetThickness(1)
-      frame.border[i]:SetColorTexture(0, 0, 0, 0)
+    end
 
-      if i == 0 then
-        frame.border[i]:SetStartPoint("TOPLEFT")
-        frame.border[i]:SetEndPoint("TOPRIGHT")
-      elseif i == 1 then
-        frame.border[i]:SetStartPoint("TOPRIGHT")
-        frame.border[i]:SetEndPoint("BOTTOMRIGHT")
-      elseif i == 2 then
-        frame.border[i]:SetStartPoint("BOTTOMRIGHT")
-        frame.border[i]:SetEndPoint("BOTTOMLEFT")
-      else
-        frame.border[i]:SetStartPoint("BOTTOMLEFT")
-        frame.border[i]:SetEndPoint("TOPLEFT")
-      end
+    frame.border[i]:SetColorTexture(color[1], color[2], color[3], color[4])
+    frame.border[i]:SetThickness(thickness)
+
+    if i == 0 then
+      frame.border[i]:SetStartPoint("TOPLEFT", -offset, 0)
+      frame.border[i]:SetEndPoint("TOPRIGHT", offset, 0)
+    elseif i == 1 then
+      frame.border[i]:SetStartPoint("TOPRIGHT", 0, offset)
+      frame.border[i]:SetEndPoint("BOTTOMRIGHT", 0, -offset)
+    elseif i == 2 then
+      frame.border[i]:SetStartPoint("BOTTOMRIGHT", offset, 0)
+      frame.border[i]:SetEndPoint("BOTTOMLEFT", -offset, 0)
+    else
+      frame.border[i]:SetStartPoint("BOTTOMLEFT", 0, -offset)
+      frame.border[i]:SetEndPoint("TOPLEFT", 0, offset)
     end
   end
 
   return frame.border
 end
 
-local function setBorderColor(frame, r, g, b, a)
-  if not frame.border then
-    Slot:CreateAppearanceOverlayBorder(frame)
-  end
-
-  for i = 0, 3 do frame.border[i]:SetColorTexture(r, g, b, a) end
-end
-
-local function updateLockedSlotFrame(slotFrame, isInteractable, config)
+function Slot:UpdateLockedSlotFrame(slotFrame, isInteractable, config)
   local lockedBackgroundColor = config:GetLockedBackgroundColor()
+  local lockedBorderThickness = config:GetLockedBorderThickness()
   local lockedBorderColor = config:GetLockedBorderColor()
+  local showIcon = config:IsShowLockIcon()
+  local iconPosition = config:GetLockIconPosition()
+  local iconSize = config:GetLockIconSize()
 
-  if isInteractable then
-    slotFrame.lockItemsInteractionOverlay:SetFrameLevel(0)
-  else
-    slotFrame.lockItemsInteractionOverlay:SetFrameLevel(20)
-  end
-
-  if config:IsShowLockIcon() then
-    slotFrame.lockItemsAppearanceOverlay.texture:Show()
-  else
-    slotFrame.lockItemsAppearanceOverlay.texture:Hide()
-  end
-
-  slotFrame.lockItemsAppearanceOverlay:SetBackdropColor(
-    lockedBackgroundColor[1],
-    lockedBackgroundColor[2],
-    lockedBackgroundColor[3],
-    lockedBackgroundColor[4]
-  )
-
-  setBorderColor(slotFrame.lockItemsAppearanceOverlay,
-    lockedBorderColor[1],
-    lockedBorderColor[2],
-    lockedBorderColor[3],
-    lockedBorderColor[4]
-  )
+  Slot:UpdateInteractionOverlay(slotFrame, isInteractable)
+  Slot:UpdateAppearanceOverlay(slotFrame, lockedBackgroundColor, showIcon)
+  Slot:UpdateIconTexture(slotFrame.lockItemsAppearanceOverlay.texture, iconPosition, iconSize)
+  Slot:UpdateBorder(slotFrame.lockItemsAppearanceOverlay, lockedBorderThickness, lockedBorderColor)
 end
 
-local function updateUnlockedSlotFrame(slotFrame)
-  slotFrame.lockItemsInteractionOverlay:SetFrameLevel(0)
-  slotFrame.lockItemsAppearanceOverlay:SetBackdropColor(0, 0, 0, 0)
-  slotFrame.lockItemsAppearanceOverlay.texture:Hide()
-  setBorderColor(slotFrame.lockItemsAppearanceOverlay, 0, 0, 0, 0)
+function Slot:UpdateUnlockedSlotFrame(slotFrame)
+  Slot:UpdateInteractionOverlay(slotFrame, true)
+  Slot:UpdateAppearanceOverlay(slotFrame, { 0, 0, 0, 0 }, false)
+  Slot:UpdateBorder(slotFrame.lockItemsAppearanceOverlay, 0, { 0, 0, 0, 0 })
 end
 
 function Slot:Update(slotFrame, isLocked, isInteractable, config)
   if isLocked then
-    updateLockedSlotFrame(slotFrame, isInteractable, config)
+    self:UpdateLockedSlotFrame(slotFrame, isInteractable, config)
   else
-    updateUnlockedSlotFrame(slotFrame)
+    self:UpdateUnlockedSlotFrame(slotFrame)
   end
 end
