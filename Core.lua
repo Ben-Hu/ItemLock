@@ -24,7 +24,7 @@ function ItemLock:SlashCommand(cmd)
   cmd = cmd:trim()
 
   if cmd == "list" or cmd == "ls" then
-    for idx, itemID in pairs(self.repo:GetLockedItemIDs()) do
+    for idx, itemID in pairs(self.repo:GetLockedItemIDs(self.config)) do
       self:Print(tostring(idx) .. ".", Item:CreateFromItemID(itemID):GetItemLink())
     end
   elseif cmd == "lock" then
