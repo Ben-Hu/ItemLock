@@ -1,15 +1,6 @@
 local ItemLock = LibStub("AceAddon-3.0"):NewAddon("ItemLock", "AceConsole-3.0", "AceEvent-3.0")
 
-local function initDB(addon)
-  local defaults = { lockedItems = {}, equipmentSetItemIDs = {} }
-  for key, val in ipairs(addon.config:Defaults()) do defaults[key] = val end
-
-  local db = LibStub("AceDB-3.0"):New("ItemLockDB", { profile = defaults })
-  db.RegisterCallback(addon, "OnProfileChanged", "UpdateSlots")
-  db.RegisterCallback(addon, "OnProfileCopied", "UpdateSlots")
-  db.RegisterCallback(addon, "OnProfileReset", "UpdateSlots")
-
-  return db
+local function initDB(addon, defaults)
 end
 
 function ItemLock:OnInitialize()
@@ -21,9 +12,8 @@ function ItemLock:OnInitialize()
   self.slot = self:GetModule("Slot")
   self.utils = self:GetModule("Utils")
 
-  local db = initDB(self)
-  self.repo:Init(db)
-  self.config:Init(self.repo)
+  self.repo:Init()
+  self.config:Init(self)
   self.sorting:Init(self.repo, self.config)
 
   self:RegisterChatCommand("il", "SlashCommand")
@@ -41,6 +31,7 @@ function ItemLock:SlashCommand(cmd)
     self:ToggleCurrentItemLock()
   elseif cmd == "reset" then
     self.repo:ResetLockedItems()
+    self:UpdateSlots()
   else
     self:GetModule("Config"):OpenOptionsFrame()
   end
@@ -51,14 +42,14 @@ function ItemLock:OnEnable()
   self:RegisterEvent("MERCHANT_CLOSED")
   self:RegisterEvent("MERCHANT_SHOW")
   self:RegisterEvent("EQUIPMENT_SETS_CHANGED")
-  self:RegisterEvent("VARIABLES_LOADED")
+  self:RegisterEvent("PLAYER_LOGIN")
   self:RegisterMessage("ITEMLOCK_CONFIG_CHANGED", "CONFIG_CHANGED")
 end
 
 function ItemLock:DELETE_ITEM_CONFIRM(_event, itemName)
   local _itemName, itemLink = GetItemInfo(itemName)
   local itemID = self.utils:ItemLinkToItemID(itemLink)
-  if self.repo:IsItemLocked(itemID) then
+  if self.repo:IsItemLocked(itemID, self.config) then
     self:Print("|cFFFF0000WARNING - DELETING A LOCKED ITEM|r", itemLink)
   end
 end
@@ -78,8 +69,9 @@ function ItemLock:EQUIPMENT_SETS_CHANGED()
   self:UpdateSlots()
 end
 
-function ItemLock:VARIABLES_LOADED()
+function ItemLock:PLAYER_LOGIN()
   self:LoadEquipmentSets()
+  self:UpdateSlots()
 end
 
 function ItemLock:CONFIG_CHANGED()
@@ -98,7 +90,7 @@ function ItemLock:ToggleCurrentItemLock()
     )
   end
 
-  self.repo:ToggleItemLock(itemID)
+  self.repo:ToggleItemLock(itemID, self.config)
   self:UpdateSlots()
 end
 
@@ -114,7 +106,7 @@ function ItemLock:UpdateSlot(bagID, slotFrame)
   local slotID = slotFrame:GetID()
   local item = Item:CreateFromBagAndSlot(bagID, slotID)
 
-  if item:IsItemEmpty() or self.repo:IsItemLocked(item:GetItemID()) ~= true then
+  if item:IsItemEmpty() or self.repo:IsItemLocked(item:GetItemID(), self.config) ~= true then
     self.slot:Setup(slotFrame, false, true, self.config)
   else
     local isInteractable = not self.isMerchantOpen or not self.config:IsVendorProtectionEnabled()

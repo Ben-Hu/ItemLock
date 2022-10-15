@@ -5,14 +5,14 @@ function Slot:Setup(slotFrame, isLocked, isInteractable, config)
   if slotFrame.lockItemsInteractionOverlay then
     self:Update(slotFrame, isLocked, isInteractable, config)
   else
-    self:Init(slotFrame)
+    self:Init(slotFrame, config)
     self:Update(slotFrame, isLocked, isInteractable, config)
   end
 end
 
-function Slot:Init(slotFrame)
+function Slot:Init(slotFrame, config)
   local appearanceOverlay = self:CreateAppearanceOverlay(slotFrame)
-  self:CreateAppearanceOverlayTexture(appearanceOverlay)
+  self:CreateAppearanceOverlayTexture(appearanceOverlay, config)
   self:CreateAppearanceOverlayBorder(appearanceOverlay)
   self:CreateInteractionOverlay(slotFrame)
 end
@@ -42,7 +42,7 @@ function Slot:CreateAppearanceOverlay(frame)
   return frame.lockItemsAppearanceOverlay
 end
 
-function Slot:CreateAppearanceOverlayTexture(frame)
+function Slot:CreateAppearanceOverlayTexture(frame, config)
   if not frame.texture then
     frame.texture = frame:CreateTexture(nil, "OVERLAY")
     frame.texture:SetSize(20, 20)
@@ -76,45 +76,60 @@ function Slot:CreateAppearanceOverlayBorder(frame)
       end
     end
   end
+
+  return frame.border
 end
 
-function Slot:SetBorderColor(frame, r, g, b, a)
+local function setBorderColor(frame, r, g, b, a)
   if not frame.border then
-    self:CreateAppearanceOverlayBorder(frame)
+    Slot:CreateAppearanceOverlayBorder(frame)
   end
 
-  for i = 0, 3 do
-    frame.border[i]:SetColorTexture(r, g, b, a)
-  end
+  for i = 0, 3 do frame.border[i]:SetColorTexture(r, g, b, a) end
 end
 
-function Slot:Update(slotFrame, isLocked, isInteractable, config)
+local function updateLockedSlotFrame(slotFrame, isInteractable, config)
   local lockedBackgroundColor = config:GetLockedBackgroundColor()
   local lockedBorderColor = config:GetLockedBorderColor()
 
-  if isLocked then
-    if isInteractable then
-      slotFrame.lockItemsInteractionOverlay:SetFrameLevel(0)
-    else
-      slotFrame.lockItemsInteractionOverlay:SetFrameLevel(20)
-    end
-    slotFrame.lockItemsAppearanceOverlay:SetBackdropColor(
-      lockedBackgroundColor[1],
-      lockedBackgroundColor[2],
-      lockedBackgroundColor[3],
-      lockedBackgroundColor[4]
-    )
-    slotFrame.lockItemsAppearanceOverlay.texture:Show()
-    self:SetBorderColor(slotFrame.lockItemsAppearanceOverlay,
-      lockedBorderColor[1],
-      lockedBorderColor[2],
-      lockedBorderColor[3],
-      lockedBorderColor[4]
-    )
-  else
+  if isInteractable then
     slotFrame.lockItemsInteractionOverlay:SetFrameLevel(0)
-    slotFrame.lockItemsAppearanceOverlay:SetBackdropColor(0, 0, 0, 0)
+  else
+    slotFrame.lockItemsInteractionOverlay:SetFrameLevel(20)
+  end
+
+  if config:IsShowLockIcon() then
+    slotFrame.lockItemsAppearanceOverlay.texture:Show()
+  else
     slotFrame.lockItemsAppearanceOverlay.texture:Hide()
-    self:SetBorderColor(slotFrame.lockItemsAppearanceOverlay, 0, 0, 0, 0)
+  end
+
+  slotFrame.lockItemsAppearanceOverlay:SetBackdropColor(
+    lockedBackgroundColor[1],
+    lockedBackgroundColor[2],
+    lockedBackgroundColor[3],
+    lockedBackgroundColor[4]
+  )
+
+  setBorderColor(slotFrame.lockItemsAppearanceOverlay,
+    lockedBorderColor[1],
+    lockedBorderColor[2],
+    lockedBorderColor[3],
+    lockedBorderColor[4]
+  )
+end
+
+local function updateUnlockedSlotFrame(slotFrame)
+  slotFrame.lockItemsInteractionOverlay:SetFrameLevel(0)
+  slotFrame.lockItemsAppearanceOverlay:SetBackdropColor(0, 0, 0, 0)
+  slotFrame.lockItemsAppearanceOverlay.texture:Hide()
+  setBorderColor(slotFrame.lockItemsAppearanceOverlay, 0, 0, 0, 0)
+end
+
+function Slot:Update(slotFrame, isLocked, isInteractable, config)
+  if isLocked then
+    updateLockedSlotFrame(slotFrame, isInteractable, config)
+  else
+    updateUnlockedSlotFrame(slotFrame)
   end
 end

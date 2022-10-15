@@ -19,7 +19,7 @@ function Sorting:OverloadBagnonSorting(repo, config)
       local newSpaces = {}
 
       for _, space in pairs(spaces) do
-        if space.item == nil or not (repo:IsItemLocked(space.item.id)) then
+        if space.item == nil or not repo:IsItemLocked(space.item.id, config) then
           table.insert(newSpaces, space)
         else
           space.item.sorted = true

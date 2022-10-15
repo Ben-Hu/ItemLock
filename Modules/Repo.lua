@@ -1,50 +1,38 @@
 local ItemLock = LibStub("AceAddon-3.0"):GetAddon("ItemLock")
 local Repo = ItemLock:NewModule("Repo")
 
-function Repo:Init(db)
-  self.db = db
-  return self
-end
-
-function Repo:Profiles()
-  return LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db)
-end
-
-function Repo:Get(key)
-  return self.db.profile[key]
-end
-
-function Repo:Set(key, value)
-  self.db.profile[key] = value
+function Repo:Init()
+  local defaults = { lockedItems = {}, equipmentSetItemIDs = {} }
+  self.db = LibStub("AceDB-3.0"):New("ItemLockRepo", { profile = defaults })
 end
 
 function Repo:ResetLockedItems()
-  self:Set("lockedItems", {})
+  self.db.profile.lockedItems = {}
 end
 
 function Repo:SetEquipmentSetItemIDs(itemIDs)
-  self:Set("equipmentSetItemIDs", itemIDs)
+  self.db.profile.equipmentSetItemIDs = itemIDs
 end
 
 function Repo:IsItemInEquipmentSet(itemID)
-  for equipmentItemID in pairs(self:Get("equipmentSetItemIDs")) do
+  for equipmentItemID in pairs(self.db.profile.equipmentSetItemIDs) do
     if equipmentItemID == itemID then return true end
   end
 
   return false
 end
 
-function Repo:GetLockedItemIDs()
+function Repo:GetLockedItemIDs(config)
   local lockedItemIDs = {}
 
-  for itemID, isLocked in pairs(self:Get("lockedItems")) do
+  for itemID, isLocked in pairs(self.db.profile.lockedItems) do
     if (isLocked) then
       tinsert(lockedItemIDs, itemID)
     end
   end
 
-  if self:Get("equipmentSetLock") then
-    for itemID in pairs(self:Get("equipmentSetItemIDs")) do
+  if config:IsEquipmentSetLockEnabled() then
+    for itemID in pairs(self.db.profile.equipmentSetItemIDs) do
       tinsert(lockedItemIDs, itemID)
     end
   end
@@ -52,21 +40,21 @@ function Repo:GetLockedItemIDs()
   return lockedItemIDs
 end
 
-function Repo:ToggleItemLock(itemID)
+function Repo:ToggleItemLock(itemID, config)
   if itemID == nil then return end
 
-  if self:IsItemLocked(itemID) then
+  if self:IsItemLocked(itemID, config) then
     self:UnlockItem(itemID)
   else
     self:LockItem(itemID)
   end
 end
 
-function Repo:IsItemLocked(itemID)
-  local isLockedItem = self:Get("lockedItems")[itemID] or false
+function Repo:IsItemLocked(itemID, config)
+  local isLockedItem = self.db.profile.lockedItems[itemID] or false
 
-  if self:Get("equipmentSetLock") then
-    local isEquipmentSetItem = self:Get("equipmentSetItemIDs")[itemID] or false
+  if config:IsEquipmentSetLockEnabled() then
+    local isEquipmentSetItem = self.db.profile.equipmentSetItemIDs[itemID] or false
     return isLockedItem or isEquipmentSetItem
   else
     return isLockedItem
@@ -74,9 +62,9 @@ function Repo:IsItemLocked(itemID)
 end
 
 function Repo:UnlockItem(itemID)
-  self:Get("lockedItems")[itemID] = false
+  self.db.profile.lockedItems[itemID] = false
 end
 
 function Repo:LockItem(itemID)
-  self:Get("lockedItems")[itemID] = true
+  self.db.profile.lockedItems[itemID] = true
 end
