@@ -1,13 +1,13 @@
-.PHONY= srd sr scd sc
+.PHONY= retail retail_ptr classic classic_ptr
 
-sr:
-	$(shell ls) | rsync -avur --exclude=.git/ --exclude=.gitignore --exclude=.envrc --delete --force -n $(shell pwd) $(WOW_DIR_RETAIL)
-
-srd:
+retail:
 	$(shell ls) | rsync -avur --exclude=.git/ --exclude=.gitignore --exclude=.envrc --delete --force $(shell pwd) $(WOW_DIR_RETAIL)
 
-sc:
-	$(shell ls) | rsync -avur --exclude=.git/ --exclude=.gitignore --exclude=.envrc --delete --force -n $(shell pwd) $(WOW_DIR_CLASSIC)
+retail_ptr:
+	$(shell ls) | rsync -avur --exclude=.git/ --exclude=.gitignore --exclude=.envrc --delete --force $(shell pwd) $(WOW_DIR_RETAIL_PTR)
 
-scd:
+classic:
 	$(shell ls) | rsync -avur --exclude=.git/ --exclude=.gitignore --exclude=.envrc --delete --force $(shell pwd) $(WOW_DIR_CLASSIC)
+
+classic_ptr:
+	$(shell ls) | rsync -avur --exclude=.git/ --exclude=.gitignore --exclude=.envrc --delete --force $(shell pwd) $(WOW_DIR_CLASSIC_PTR)
