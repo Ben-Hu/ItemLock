@@ -1,8 +1,5 @@
 local ItemLock = LibStub("AceAddon-3.0"):NewAddon("ItemLock", "AceConsole-3.0", "AceEvent-3.0")
 
-local function initDB(addon, defaults)
-end
-
 function ItemLock:OnInitialize()
   self.isMerchantOpen = false
 
@@ -43,6 +40,7 @@ function ItemLock:OnEnable()
   self:RegisterEvent("MERCHANT_SHOW")
   self:RegisterEvent("EQUIPMENT_SETS_CHANGED")
   self:RegisterEvent("PLAYER_LOGIN")
+  self:RegisterEvent("BAG_UPDATE")
   self:RegisterMessage("ITEMLOCK_CONFIG_CHANGED", "CONFIG_CHANGED")
 end
 
@@ -77,6 +75,20 @@ end
 function ItemLock:CONFIG_CHANGED()
   self:LoadEquipmentSets()
   self:UpdateSlots()
+end
+
+function ItemLock:BAG_UPDATE(...)
+  local event, bagIndex = ...
+  local bagID = bagIndex + 1
+  local bag = _G["ContainerFrame" .. bagID]
+  local bagName = bag:GetName()
+  local bagSize = GetContainerNumSlots(bagIndex)
+
+  for itemIndex = 1, bagSize, 1 do
+    local slotIndex = bagSize - itemIndex + 1
+    local slotFrame = _G[bagName .. "Item" .. slotIndex]
+    ItemLock:UpdateSlot(bagIndex, slotFrame)
+  end
 end
 
 function ItemLock:ToggleCurrentItemLock()
@@ -120,14 +132,22 @@ function ItemLock:LoadEquipmentSets()
 end
 
 -- Default Bags
-hooksecurefunc("ContainerFrame_Update", function(bag)
-  local bagID = bag:GetID()
-  local bagName = bag:GetName()
-  for itemIndex = 1, bag.size, 1 do
-    local slotFrame = _G[bagName .. "Item" .. itemIndex]
-    ItemLock:UpdateSlot(bagID, slotFrame)
-  end
-end)
+if _G.ContainerFrame_Update then
+  hooksecurefunc("ContainerFrame_Update", function(bag)
+    local bagID = bag:GetID()
+    local bagName = bag:GetName()
+    for itemIndex = 1, bag.size, 1 do
+      local slotFrame = _G[bagName .. "Item" .. itemIndex]
+      ItemLock:UpdateSlot(bagID, slotFrame)
+    end
+  end)
+end
+
+if _G.ContainerFrame_OnShow then
+  hooksecurefunc("ContainerFrame_OnShow", function()
+    ItemLock:UpdateSlots()
+  end)
+end
 
 -- Bagnon
 if IsAddOnLoaded("Bagnon") then
