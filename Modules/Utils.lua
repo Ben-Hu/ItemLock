@@ -41,3 +41,7 @@ function Utils:GetSlotsByBagID(plugin)
 
   return slotsByBagID
 end
+
+function Utils:IsClassic()
+  return WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC
+end

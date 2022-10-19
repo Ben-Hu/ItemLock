@@ -28,7 +28,7 @@ function ItemLock:SlashCommand(cmd)
 
   if cmd == "list" or cmd == "ls" then
     for idx, itemID in pairs(self.repo:GetLockedItemIDs(self.config)) do
-      self.logger:Puts(tostring(idx) .. ".", Item:CreateFromItemID(itemID):GetItemLink())
+      self.logger:Print(tostring(idx) .. ".", Item:CreateFromItemID(itemID):GetItemLink())
     end
   elseif cmd == "lock" then
     self:ToggleCurrentItemLock()
@@ -88,21 +88,18 @@ function ItemLock:ToggleCurrentItemLock()
 
   self.repo:ToggleItemLock(itemID, self.config)
 
-  if self.config:IsVerboseEnabled() then
-    local itemLink = Item:CreateFromItemID(itemID):GetItemLink()
+  local itemLink = Item:CreateFromItemID(itemID):GetItemLink()
 
-    if self.config:IsEquipmentSetLockEnabled() and
-        self.repo:IsItemInEquipmentSet(itemID) then
-      self.logger:Info(
-        itemLink,
-        "belongs to an equipment set and will remain locked as equipment set locking is enabled."
-      )
-    elseif self.repo:IsItemLocked(itemID, self.config) then
-      self.logger:Debug(itemLink, "locked")
-    else
-      self.logger:Debug(itemLink, "unlocked")
-    end
-
+  if self.config:IsEquipmentSetLockEnabled() and
+      self.repo:IsItemInEquipmentSet(itemID) then
+    self.logger:Info(
+      itemLink,
+      "belongs to an equipment set and will remain locked as equipment set locking is enabled."
+    )
+  elseif self.repo:IsItemLocked(itemID, self.config) then
+    self.logger:Info(itemLink, "locked")
+  else
+    self.logger:Info(itemLink, "unlocked")
   end
 
   self:UpdateSlots()
@@ -117,6 +114,8 @@ function ItemLock:UpdateSlots()
 end
 
 function ItemLock:UpdateSlot(bagID, slotFrame)
+  if not slotFrame then return end
+
   local slotID = slotFrame:GetID()
   local item = Item:CreateFromBagAndSlot(bagID, slotID)
 
@@ -124,6 +123,7 @@ function ItemLock:UpdateSlot(bagID, slotFrame)
     self.slot:Setup(slotFrame, false, true, self.config)
   else
     local isInteractable = not self.isMerchantOpen or not self.config:IsVendorProtectionEnabled()
+    self.logger:Debug("Locked Item at", slotFrame:GetName())
     self.slot:Setup(slotFrame, true, isInteractable, self.config)
   end
 end

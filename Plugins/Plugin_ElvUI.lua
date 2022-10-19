@@ -4,6 +4,8 @@ local PluginElvUI = ItemLock:NewModule("PluginElvUI")
 function PluginElvUI:Init()
   local E, L, V, P, G = unpack(ElvUI)
 
+  self.logger = ItemLock:GetModule("Logger")
+
   -- Initialize the default plugin as a fallback if ElvUI's bag module is disabled and
   -- the default bags are used
   self.default = ItemLock:GetModule("PluginDefault")
@@ -17,8 +19,16 @@ function PluginElvUI:Init()
 end
 
 function PluginElvUI:GetSlotFrame(bagID, slotIndex)
-  local containerFrameIndex = bagID
+  local containerFrameIndex
+
+  if ItemLock:GetModule("Utils"):IsClassic() then
+    containerFrameIndex = bagID - 1
+  else
+    containerFrameIndex = bagID
+  end
+
   local itemIndex = slotIndex
+
   local customFrame = _G["ElvUI_ContainerFrameBag" .. containerFrameIndex .. "Slot" .. itemIndex]
 
   if customFrame then

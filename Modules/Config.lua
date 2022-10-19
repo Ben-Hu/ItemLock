@@ -47,8 +47,8 @@ function Config:Defaults()
     vendorProtection = true,
     sortLock = true,
     equipmentSetLock = true,
-    verbose = false,
     showTooltip = false,
+    logLevel = "WARN",
     lockedBackgroundColor = { 0, 0, 0, 0.5 },
     lockedBorderColor = { 1, 1, 1, 1 },
     lockedBorderThickness = 1.5,
@@ -99,27 +99,34 @@ function Config:GetOptions()
             get = getFunc(self.db, "equipmentSetLock"),
             set = setFunc(self.db, "equipmentSetLock"),
           },
-          debugHeader = {
-            name = "Debug",
-            type = "header",
-            order = 4,
-          },
-          verbose = {
-            name = "Verbose Mode",
-            desc = "If enabled, messages will be printed when items are locked/unlocked.",
-            type = "toggle",
-            order = 5,
-            get = getFunc(self.db, "verbose"),
-            set = setFunc(self.db, "verbose"),
-          },
           showTooltip = {
             name = "Tooltip Text",
             desc = "If enabled, locked items will have text added to the tooltip to indicate so.",
             type = "toggle",
-            order = 6,
+            order = 4,
             get = getFunc(self.db, "showTooltip"),
             set = setFunc(self.db, "showTooltip"),
-          }
+          },
+          debugHeader = {
+            name = "Debug",
+            type = "header",
+            order = 5,
+          },
+          logLevel = {
+            name = "Log Level",
+            desc = "Determines the minimum level/type of log messages to be printed.",
+            type = "select",
+            values = {
+              DEBUG = "DEBUG",
+              INFO = "INFO",
+              WARN = "WARN",
+              ERROR = "ERROR"
+            },
+            sorting = { "DEBUG", "INFO", "WARN", "ERROR" },
+            order = 6,
+            get = getFunc(self.db, "logLevel"),
+            set = setFunc(self.db, "logLevel"),
+          },
         },
       },
       appearanceOptions = {
@@ -225,12 +232,12 @@ function Config:IsEquipmentSetLockEnabled()
   return getOrDefault(self.db, "equipmentSetLock")
 end
 
-function Config:IsVerboseEnabled()
-  return getOrDefault(self.db, "verbose")
-end
-
 function Config:IsShowTooltipEnabled()
   return getOrDefault(self.db, "showTooltip")
+end
+
+function Config:GetLogLevel()
+  return getOrDefault(self.db, "logLevel")
 end
 
 function Config:GetLockedBackgroundColor()
