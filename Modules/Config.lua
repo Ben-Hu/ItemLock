@@ -47,6 +47,8 @@ function Config:Defaults()
     vendorProtection = true,
     sortLock = true,
     equipmentSetLock = true,
+    verbose = false,
+    showTooltip = false,
     lockedBackgroundColor = { 0, 0, 0, 0.5 },
     lockedBorderColor = { 1, 1, 1, 1 },
     lockedBorderThickness = 1.5,
@@ -68,6 +70,11 @@ function Config:GetOptions()
         name = "General",
         order = 1,
         args = {
+          featuresHeader = {
+            name = "Features",
+            type = "header",
+            order = 0,
+          },
           vendorProtection = {
             name = "Vendor Protection",
             desc = "If enabled, locked items will become non-interactive when at a vendor.",
@@ -91,6 +98,27 @@ function Config:GetOptions()
             order = 3,
             get = getFunc(self.db, "equipmentSetLock"),
             set = setFunc(self.db, "equipmentSetLock"),
+          },
+          debugHeader = {
+            name = "Debug",
+            type = "header",
+            order = 4,
+          },
+          verbose = {
+            name = "Verbose Mode",
+            desc = "If enabled, messages will be printed when items are locked/unlocked.",
+            type = "toggle",
+            order = 5,
+            get = getFunc(self.db, "verbose"),
+            set = setFunc(self.db, "verbose"),
+          },
+          showTooltip = {
+            name = "Tooltip Text",
+            desc = "If enabled, locked items will have text added to the tooltip to indicate so.",
+            type = "toggle",
+            order = 6,
+            get = getFunc(self.db, "showTooltip"),
+            set = setFunc(self.db, "showTooltip"),
           }
         },
       },
@@ -195,6 +223,14 @@ end
 
 function Config:IsEquipmentSetLockEnabled()
   return getOrDefault(self.db, "equipmentSetLock")
+end
+
+function Config:IsVerboseEnabled()
+  return getOrDefault(self.db, "verbose")
+end
+
+function Config:IsShowTooltipEnabled()
+  return getOrDefault(self.db, "showTooltip")
 end
 
 function Config:GetLockedBackgroundColor()

@@ -101,16 +101,27 @@ end
 
 function ItemLock:ToggleCurrentItemLock()
   local itemID = self.utils:GetTooltipItemID()
-
-  if self.config:IsEquipmentSetLockEnabled() and
-      self.repo:IsItemInEquipmentSet(itemID) then
-    self:Print(
-      Item:CreateFromItemID(itemID):GetItemLink(),
-      "belongs to an equipment set and will remain locked as equipment set locking is enabled."
-    )
-  end
+  if not itemID then return end
 
   self.repo:ToggleItemLock(itemID, self.config)
+
+  if self.config:IsVerboseEnabled() then
+    local itemLink = Item:CreateFromItemID(itemID):GetItemLink()
+
+    if self.config:IsEquipmentSetLockEnabled() and
+        self.repo:IsItemInEquipmentSet(itemID) then
+      self:Print(
+        itemLink,
+        "belongs to an equipment set and will remain locked as equipment set locking is enabled."
+      )
+    elseif self.repo:IsItemLocked(itemID, self.config) then
+      self:Print(itemLink, "locked")
+    else
+      self:Print(itemLink, "unlocked")
+    end
+
+  end
+
   self:UpdateSlots()
 end
 
@@ -139,12 +150,27 @@ function ItemLock:LoadEquipmentSets()
   self.repo:SetEquipmentSetItemIDs(itemIDs)
 end
 
--- Default Bags
+function ItemLock:SetGameTooltip(tooltip)
+  if not self.config:IsShowTooltipEnabled() then return end
+
+  local _itemName, itemLink = tooltip:GetItem()
+  local itemID = ItemLock:GetModule("Utils"):ItemLinkToItemID(itemLink)
+  if itemID and self.repo:IsItemLocked(itemID, self.config) then
+    tooltip:AddLine("Locked - ItemLock")
+  end
+end
+
+-- Default UI
 if _G.ContainerFrame_OnShow then
   hooksecurefunc("ContainerFrame_OnShow", function()
     ItemLock:UpdateSlots()
   end)
 end
+
+GameTooltip:HookScript("OnTooltipSetItem", function(tooltip)
+  ItemLock:SetGameTooltip(tooltip)
+end)
+
 
 -- Bagnon
 if IsAddOnLoaded("Bagnon") then
