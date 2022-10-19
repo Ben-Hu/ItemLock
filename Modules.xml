@@ -3,8 +3,13 @@
 
   <Script file="Modules/Repo.lua"/>
   <Script file="Modules/Config.lua"/>
+  <Script file="Modules/Logger.lua"/>
   <Script file="Modules/Sorting.lua"/>
   <Script file="Modules/Slot.lua"/>
   <Script file="Modules/Utils.lua"/>
+  <Script file="Modules/Tooltip.lua"/>
 
+  <Script file="Plugins/Plugin_Bagnon.lua"/>
+  <Script file="Plugins/Plugin_Default.lua"/>
+  <Script file="Plugins/Plugin_ElvUI.lua"/>
 </Ui>

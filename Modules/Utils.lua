@@ -26,66 +26,18 @@ function Utils:GetEquipmentSetItemIDs()
   return equipmentSetItemIds
 end
 
-function Utils:GetSlotsByBagID()
+function Utils:GetSlotsByBagID(plugin)
   local slotsByBagID = {}
 
   for bagID = 0, NUM_BAG_SLOTS do
     slotsByBagID[bagID] = {}
     for slotIndex = 1, GetContainerNumSlots(bagID) do
       if GetContainerItemID(bagID, slotIndex) then
-        local slotFrame = self:GetSlotFrame(bagID, slotIndex)
+        local slotFrame = plugin:GetSlotFrame(bagID, slotIndex)
         tinsert(slotsByBagID[bagID], slotFrame)
       end
     end
   end
 
   return slotsByBagID
-end
-
-function Utils:GetSlotFrame(bagID, slotIndex)
-  if IsAddOnLoaded("Bagnon") then
-    return Utils:GetBagnonSlotFrame(bagID, slotIndex)
-  elseif IsAddOnLoaded("ElvUI") then
-    return Utils:GetElvUISlotFrame(bagID, slotIndex)
-  else
-    return Utils:GetDefaultSlotframe(bagID, slotIndex)
-  end
-end
-
-function Utils:GetBagnonSlotFrame(bagID, slotIndex)
-  local containerFrameIndex = bagID + 1
-  local itemIndex = GetContainerNumSlots(bagID) - (slotIndex - 1)
-
-  -- bagnon splits container frames into fixed 36 slot chunks
-  -- rather than the container capacity
-  local slotOffset = slotIndex + 1
-
-  for i = bagID - 1, 0, -1 do
-    slotOffset = slotOffset + GetContainerNumSlots(i)
-  end
-
-  containerFrameIndex = ceil(slotOffset / 36)
-  itemIndex = slotOffset - (containerFrameIndex - 1) * 36
-
-  return _G["ContainerFrame" .. containerFrameIndex .. "Item" .. itemIndex]
-end
-
-function Utils:GetElvUISlotFrame(bagID, slotIndex)
-  local containerFrameIndex = bagID
-  local itemIndex = slotIndex
-  local customFrame = _G["ElvUI_ContainerFrameBag" .. containerFrameIndex .. "Slot" .. itemIndex]
-
-  if customFrame then
-    return customFrame
-  else
-    -- return default frame ElvUI's bag module is disabled
-    return Utils:GetDefaultSlotframe(bagID, slotIndex)
-  end
-end
-
-function Utils:GetDefaultSlotframe(bagID, slotIndex)
-  local containerFrameIndex = bagID + 1
-  local itemIndex = GetContainerNumSlots(bagID) - (slotIndex - 1)
-
-  return _G["ContainerFrame" .. containerFrameIndex .. "Item" .. itemIndex]
 end
