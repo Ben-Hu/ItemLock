@@ -153,3 +153,14 @@ if IsAddOnLoaded("Bagnon") then
     ItemLock:UpdateSlot(bagID, slotFrame)
   end)
 end
+
+-- ElvUI
+if IsAddOnLoaded("ElvUI") then
+  local E, L, V, P, G = unpack(ElvUI)
+
+  hooksecurefunc(E:GetModule("Bags"), "UpdateSlot", function(self, frame, bagID, slotID)
+    local bag = frame.Bags[bagID]
+    local slot = bag and bag[slotID]
+    ItemLock:UpdateSlot(bagID, slot)
+  end)
+end
