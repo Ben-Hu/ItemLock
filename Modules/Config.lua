@@ -85,7 +85,7 @@ function Config:GetOptions()
           },
           sortLock = {
             name = "Item Position Lock",
-            desc = "If enabled, items will not be moved by bag sorting. Note: this only works with Bagnon.",
+            desc = "If enabled, items will not be moved by bag sorting. Note: this only works with Bagnon & ElvUI's custom sorting.",
             type = "toggle",
             order = 2,
             get = getFunc(self.db, "sortLock"),

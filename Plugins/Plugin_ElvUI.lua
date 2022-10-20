@@ -1,21 +1,22 @@
 local ItemLock = LibStub("AceAddon-3.0"):GetAddon("ItemLock")
 local PluginElvUI = ItemLock:NewModule("PluginElvUI")
 
-function PluginElvUI:Init()
+function PluginElvUI:Init(repo, config)
   local E, L, V, P, G = unpack(ElvUI)
-
-  self.logger = ItemLock:GetModule("Logger")
+  local Bags = E:GetModule("Bags")
 
   -- Initialize the default plugin as a fallback if ElvUI's bag module is disabled and
   -- the default bags are used
   self.default = ItemLock:GetModule("PluginDefault")
   self.default:Init()
 
-  hooksecurefunc(E:GetModule("Bags"), "UpdateSlot", function(self, frame, bagID, slotID)
+  hooksecurefunc(Bags, "UpdateSlot", function(self, frame, bagID, slotID)
     local bag = frame.Bags[bagID]
     local slot = bag and bag[slotID]
     ItemLock:UpdateSlot(bagID, slot)
   end)
+
+  self:CustomSort(Bags, repo, config)
 end
 
 function PluginElvUI:GetSlotFrame(bagID, slotIndex)
@@ -35,5 +36,21 @@ function PluginElvUI:GetSlotFrame(bagID, slotIndex)
     return customFrame
   else
     return self.default:GetSlotFrame(bagID, slotIndex)
+  end
+end
+
+function PluginElvUI:CustomSort(Bags, repo, config)
+  local buildBlackList = Bags.BuildBlacklist
+
+  function Bags:BuildBlacklist(entries)
+    if config:IsSortLockEnabled() then
+      local lockedItemIDs = {}
+      for _idx, itemID in pairs(repo:GetLockedItemIDs(config)) do lockedItemIDs[itemID] = true end
+
+      buildBlackList(self, lockedItemIDs)
+      buildBlackList(self, entries)
+    else
+      buildBlackList(self, entries)
+    end
   end
 end
