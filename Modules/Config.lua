@@ -65,6 +65,10 @@ function Config:GetOptions()
     desc = "ItemLock",
     childGroups = "tab",
     args = {
+      description = {
+        type = "description",
+        name = "Version " .. ItemLock.version
+      },
       generalOptions = {
         type = "group",
         name = "General",

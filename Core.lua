@@ -1,4 +1,5 @@
 local ItemLock = LibStub("AceAddon-3.0"):NewAddon("ItemLock", "AceConsole-3.0", "AceEvent-3.0")
+ItemLock.version = GetAddOnMetadata("ItemLock", "Version")
 
 function ItemLock:OnInitialize()
   self.isMerchantOpen = false
@@ -33,6 +34,8 @@ function ItemLock:SlashCommand(cmd)
   elseif cmd == "reset" then
     self.repo:ResetLockedItems()
     self:UpdateSlots()
+  elseif cmd == "version" or cmd == "v" then
+    self.logger:Print("version", ItemLock.version)
   else
     self:GetModule("Config"):OpenOptionsFrame()
   end

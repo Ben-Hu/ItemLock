@@ -1,7 +1,7 @@
 ## Interface: 30400
 ## Title: ItemLock
 ## Author: Ben Hu
-## Version: 0.7.0
+## Version: 0.8.0
 ## SavedVariables: ItemLockRepo
 ## SavedVariables: ItemLockConfig
 
