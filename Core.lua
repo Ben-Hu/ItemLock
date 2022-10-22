@@ -132,8 +132,8 @@ function ItemLock:LoadEquipmentSets()
 end
 
 function ItemLock:LoadPlugins()
-  if IsAddOnLoaded("Bagnon") then
-    self.plugin = self:GetModule("PluginBagnon")
+  if IsAddOnLoaded("Bagnon") or IsAddOnLoaded("Combuctor") then
+    self.plugin = self:GetModule("PluginBagnonCombuctor")
     self.plugin:Init(self.repo, self.config)
   elseif IsAddOnLoaded("ElvUI") then
     self.plugin = self:GetModule("PluginElvUI")

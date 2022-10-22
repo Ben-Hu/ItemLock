@@ -1,21 +1,23 @@
 local ItemLock = LibStub("AceAddon-3.0"):GetAddon("ItemLock")
-local PluginBagnon = ItemLock:NewModule("PluginBagnon")
+local PluginBagnonCombuctor = ItemLock:NewModule("PluginBagnonCombuctor")
 
-function PluginBagnon:Init(repo, config)
-  hooksecurefunc(Bagnon.Item, "Update", function(slotFrame)
+function PluginBagnonCombuctor:Init(repo, config)
+  local addon = Bagnon or Combuctor
+
+  hooksecurefunc(addon.Item, "Update", function(slotFrame)
     local bagID = slotFrame:GetBag()
     ItemLock:UpdateSlot(bagID, slotFrame)
   end)
 
-  self:CustomSort(repo, config)
+  self:CustomSort(addon, repo, config)
 end
 
-function PluginBagnon:GetSlotFrame(bagID, slotIndex)
+function PluginBagnonCombuctor:GetSlotFrame(bagID, slotIndex)
   local containerFrameIndex = bagID + 1
   local itemIndex = GetContainerNumSlots(bagID) - (slotIndex - 1)
 
-  -- bagnon splits container frames into fixed 36 slot chunks
-  -- rather than the container capacity
+  -- container frames are split into fixed 36 slot chunks
+  -- rather than based on the actual container capacity
   local slotOffset = slotIndex + 1
 
   for i = bagID - 1, 0, -1 do
@@ -28,10 +30,10 @@ function PluginBagnon:GetSlotFrame(bagID, slotIndex)
   return _G["ContainerFrame" .. containerFrameIndex .. "Item" .. itemIndex]
 end
 
-function PluginBagnon:CustomSort(repo, config)
-  local GetOrder = Bagnon.Sorting.GetOrder
+function PluginBagnonCombuctor:CustomSort(addon, repo, config)
+  local GetOrder = addon.Sorting.GetOrder
 
-  function Bagnon.Sorting:GetOrder(spaces, family)
+  function addon.Sorting:GetOrder(spaces, family)
     if config:IsSortLockEnabled() then
       local newSpaces = {}
 
@@ -49,13 +51,13 @@ function PluginBagnon:CustomSort(repo, config)
     end
   end
 
-  -- overload global sort to use Bagnon's custom sorting if the sort lock feature is enabled.
+  -- overload global sort to use custom sorting if the sort lock feature is enabled.
   if _G.SortBags then
     local sortBags = _G.SortBags
 
     function _G.SortBags()
       if config:IsSortLockEnabled() then
-        Bagnon.Sorting:Start(UnitName('player'), Bagnon.InventoryFrame.Bags)
+        addon.Sorting:Start(UnitName('player'), addon.InventoryFrame.Bags)
       else
         sortBags()
       end
