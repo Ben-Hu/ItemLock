@@ -19,7 +19,3 @@ function PluginLiteBag:GetSlotFrame(bagID, slotIndex)
   local itemIndex = slotIndex
   return _G["LiteBagInventoryPanelContainerFrame" .. containerFrameIndex .. "Item" .. itemIndex]
 end
-
-function PluginLiteBag:CustomSort(repo, config)
-  -- noop
-end

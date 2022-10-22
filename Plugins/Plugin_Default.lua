@@ -34,8 +34,6 @@ function PluginDefault:Init()
   self.frame = CreateFrame("Frame")
   self.frame:RegisterEvent("BAG_UPDATE")
   self.frame:SetScript("OnEvent", onEvent)
-
-  self:CustomSort()
 end
 
 function PluginDefault:GetSlotFrame(bagID, slotIndex)
@@ -43,8 +41,4 @@ function PluginDefault:GetSlotFrame(bagID, slotIndex)
   local itemIndex = GetContainerNumSlots(bagID) - (slotIndex - 1)
 
   return _G["ContainerFrame" .. containerFrameIndex .. "Item" .. itemIndex]
-end
-
-function PluginDefault:CustomSort()
-  -- noop
 end

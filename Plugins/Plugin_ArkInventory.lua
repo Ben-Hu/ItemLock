@@ -14,7 +14,3 @@ function PluginArkInventory:GetSlotFrame(bagID, slotIndex)
   local itemIndex = slotIndex
   return _G["ARKINV_Frame1ScrollContainerBag" .. containerFrameIndex .. "Item" .. itemIndex]
 end
-
-function PluginArkInventory:CustomSort(repo, config)
-  -- noop
-end
