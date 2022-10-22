@@ -8,7 +8,9 @@
   <Script file="Modules/Utils.lua"/>
   <Script file="Modules/Tooltip.lua"/>
 
+  <Script file="Plugins/Plugin_ArkInventory.lua"/>
   <Script file="Plugins/Plugin_Bagnon_Combuctor.lua"/>
   <Script file="Plugins/Plugin_Default.lua"/>
   <Script file="Plugins/Plugin_ElvUI.lua"/>
+  <Script file="Plugins/Plugin_LiteBag.lua"/>
 </Ui>
