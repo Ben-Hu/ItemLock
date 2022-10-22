@@ -54,7 +54,7 @@ function ItemLock:DELETE_ITEM_CONFIRM(_event, itemName)
   local _itemName, itemLink = GetItemInfo(itemName)
   local itemID = self.utils:ItemLinkToItemID(itemLink)
   if self.repo:IsItemLocked(itemID, self.config) then
-    self.logger:Warn("|cFFFF0000WARNING - DELETING A LOCKED ITEM|r", itemLink)
+    self.logger:Warn(self.logger:Red("DELETING A LOCKED ITEM"), itemLink)
   end
 end
 
@@ -98,9 +98,9 @@ function ItemLock:ToggleCurrentItemLock()
       "belongs to an equipment set and will remain locked as equipment set locking is enabled."
     )
   elseif self.repo:IsItemLocked(itemID, self.config) then
-    self.logger:Info(itemLink, "locked")
+    self.logger:Info("locked", itemLink)
   else
-    self.logger:Info(itemLink, "unlocked")
+    self.logger:Info("unlocked", itemLink)
   end
 
   self:UpdateSlots()
@@ -148,4 +148,5 @@ function ItemLock:LoadPlugins()
   end
 
   self.plugin:Init(self.repo, self.config)
+  self.logger:Debug(self.plugin:GetName(), "loaded")
 end

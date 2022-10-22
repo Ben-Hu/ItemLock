@@ -1,9 +1,9 @@
 ## Interface: 90207
 ## Title: ItemLock
 ## Author: Ben Hu
-## Version: 0.8.0
-## SavedVariables: ItemLockRepo
-## SavedVariables: ItemLockConfig
+## Version: 0.9.0
+## SavedVariables: ItemLockRepo, ItemLockConfig
+## OptionalDeps: Bagnon, Combuctor, ElvUI, ArkInventory, LiteBag
 
 Libs.xml
 
