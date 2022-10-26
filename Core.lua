@@ -137,12 +137,12 @@ end
 function ItemLock:LoadPlugins()
   if IsAddOnLoaded("Bagnon") or IsAddOnLoaded("Combuctor") then
     self.plugin = self:GetModule("PluginBagnonCombuctor")
-  elseif IsAddOnLoaded("ElvUI") then
-    self.plugin = self:GetModule("PluginElvUI")
   elseif IsAddOnLoaded("ArkInventory") then
     self.plugin = self:GetModule("PluginArkInventory")
   elseif IsAddOnLoaded("LiteBag") then
     self.plugin = self:GetModule("PluginLiteBag")
+  elseif IsAddOnLoaded("ElvUI") then
+    self.plugin = self:GetModule("PluginElvUI")
   else
     self.plugin = self:GetModule("PluginDefault")
   end
