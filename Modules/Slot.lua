@@ -1,6 +1,31 @@
 local ItemLock = LibStub("AceAddon-3.0"):GetAddon("ItemLock")
 local Slot = ItemLock:NewModule("Slot")
 
+local function getClickBindModifierFunction(config)
+  local modifier = config:GetClickBindModifier()
+
+  if modifier == "ALT" then
+    return IsAltKeyDown
+  elseif modifier == "CTRL" then
+    return IsControlKeyDown
+  elseif modifier == "SHIFT" then
+    return IsShiftKeyDown
+  end
+end
+
+local function buildOnClickHookScript(config)
+  return function(_frame, button, _down)
+    if not config:IsClickBindEnabled() then return end
+
+    local clickBindButton = config:GetClickBindButton()
+    local modifierFunction = getClickBindModifierFunction(config)
+
+    if button == clickBindButton and modifierFunction() then
+      ItemLock:ToggleCurrentItemLock()
+    end
+  end
+end
+
 function Slot:Setup(slotFrame, isLocked, isInteractable, config)
   if slotFrame.lockItemsInteractionOverlay then
     self:Update(slotFrame, isLocked, isInteractable, config)
@@ -11,24 +36,13 @@ function Slot:Setup(slotFrame, isLocked, isInteractable, config)
 end
 
 function Slot:Init(slotFrame, config)
-  local appearanceOverlay = self:CreateAppearanceOverlay(slotFrame)
+  local appearanceOverlay = self:CreateAppearanceOverlay(slotFrame, config)
   self:CreateIconTexture(appearanceOverlay, config)
   self:CreateBorder(appearanceOverlay, config)
   self:CreateInteractionOverlay(slotFrame)
 end
 
-function Slot:CreateInteractionOverlay(frame)
-  if not frame.lockItemsInteractionOverlay then
-    frame.lockItemsInteractionOverlay = CreateFrame("FRAME", nil, frame)
-    frame.lockItemsInteractionOverlay:SetSize(frame:GetSize())
-    frame.lockItemsInteractionOverlay:SetPoint("CENTER")
-    frame.lockItemsInteractionOverlay:SetScript("OnMouseDown", function() end)
-    frame.lockItemsInteractionOverlay:SetFrameLevel(0)
-  end
-  return frame.lockItemsInteractionOverlay
-end
-
-function Slot:CreateAppearanceOverlay(frame)
+function Slot:CreateAppearanceOverlay(frame, config)
   if not frame.lockItemsAppearanceOverlay then
     frame.lockItemsAppearanceOverlay = CreateFrame("FRAME", nil, frame, "BackdropTemplate")
     frame.lockItemsAppearanceOverlay:SetSize(frame:GetSize())
@@ -38,6 +52,8 @@ function Slot:CreateAppearanceOverlay(frame)
     })
     frame.lockItemsAppearanceOverlay:SetFrameLevel(20)
     frame.lockItemsAppearanceOverlay:SetBackdropColor(0, 0, 0, 0)
+    frame:RegisterForClicks("LeftButtonUp", "RightButtonUp", "MiddleButtonUp")
+    frame:HookScript('OnClick', buildOnClickHookScript(config))
   end
   return frame.lockItemsAppearanceOverlay
 end
@@ -60,12 +76,15 @@ function Slot:CreateBorder(frame, config)
   return self:UpdateBorder(frame, thickness, { 0, 0, 0, 0 })
 end
 
-function Slot:UpdateInteractionOverlay(frame, isInteractable)
-  if isInteractable then
+function Slot:CreateInteractionOverlay(frame)
+  if not frame.lockItemsInteractionOverlay then
+    frame.lockItemsInteractionOverlay = CreateFrame("FRAME", nil, frame)
+    frame.lockItemsInteractionOverlay:SetSize(frame:GetSize())
+    frame.lockItemsInteractionOverlay:SetPoint("CENTER")
+    frame.lockItemsInteractionOverlay:SetScript("OnMouseDown", function() end)
     frame.lockItemsInteractionOverlay:SetFrameLevel(0)
-  else
-    frame.lockItemsInteractionOverlay:SetFrameLevel(20)
   end
+  return frame.lockItemsInteractionOverlay
 end
 
 function Slot:UpdateAppearanceOverlay(frame, color, showLockIcon)
@@ -116,6 +135,14 @@ function Slot:UpdateBorder(frame, thickness, color)
   end
 
   return frame.border
+end
+
+function Slot:UpdateInteractionOverlay(frame, isInteractable)
+  if isInteractable then
+    frame.lockItemsInteractionOverlay:SetFrameLevel(0)
+  else
+    frame.lockItemsInteractionOverlay:SetFrameLevel(20)
+  end
 end
 
 function Slot:UpdateLockedSlotFrame(slotFrame, isInteractable, config)

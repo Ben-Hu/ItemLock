@@ -54,7 +54,11 @@ function Config:Defaults()
     lockedBorderThickness = 1.5,
     showLockIcon = true,
     lockIconPosition = "BOTTOMLEFT",
-    lockIconSize = 20
+    lockIconSize = 20,
+    clickBind = true,
+    clickBindButton = "LeftButton",
+    clickBindModifier = "ALT"
+
   }
 end
 
@@ -111,10 +115,51 @@ function Config:GetOptions()
             get = getFunc(self.db, "showTooltip"),
             set = setFunc(self.db, "showTooltip"),
           },
+          clickBindHeader = {
+            name = "Click Bind",
+            type = "header",
+            order = 5,
+          },
+          clickBind = {
+            name = "Enable Click Binds",
+            desc = "Use mouse button click binds to lock items?",
+            type = "toggle",
+            order = 6,
+            get = getFunc(self.db, "clickBind"),
+            set = setFunc(self.db, "clickBind"),
+          },
+          clickBindButton = {
+            name = "Click Bind Button",
+            desc = "The mouse button to use for the click bind",
+            type = "select",
+            values = {
+              LeftButton = "LeftButton",
+              RightButton = "RightButton",
+              MiddleButton = "MiddleButton"
+            },
+            sorting = { "LeftButton", "RightButton", "MiddleButton" },
+            order = 7,
+            get = getFunc(self.db, "clickBindButton"),
+            set = setFunc(self.db, "clickBindButton"),
+          },
+          clickBindModifier = {
+            name = "Click Bind Modifier",
+            desc = "The modifier to use for the click bind",
+            type = "select",
+            values = {
+              CTRL = "CTRL",
+              SHIFT = "SHIFT",
+              ALT = "ALT"
+            },
+            sorting = { "CTRL", "SHIFT", "ALT" },
+            order = 8,
+            get = getFunc(self.db, "clickBindModifier"),
+            set = setFunc(self.db, "clickBindModifier"),
+          },
           debugHeader = {
             name = "Debug",
             type = "header",
-            order = 5,
+            order = 9,
           },
           logLevel = {
             name = "Log Level",
@@ -127,7 +172,7 @@ function Config:GetOptions()
               ERROR = "ERROR"
             },
             sorting = { "DEBUG", "INFO", "WARN", "ERROR" },
-            order = 6,
+            order = 10,
             get = getFunc(self.db, "logLevel"),
             set = setFunc(self.db, "logLevel"),
           },
@@ -238,6 +283,18 @@ end
 
 function Config:IsShowTooltipEnabled()
   return getOrDefault(self.db, "showTooltip")
+end
+
+function Config:IsClickBindEnabled()
+  return getOrDefault(self.db, "clickBind")
+end
+
+function Config:GetClickBindButton()
+  return getOrDefault(self.db, "clickBindButton")
+end
+
+function Config:GetClickBindModifier()
+  return getOrDefault(self.db, "clickBindModifier")
 end
 
 function Config:GetLogLevel()
