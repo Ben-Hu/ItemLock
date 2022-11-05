@@ -141,6 +141,8 @@ function ItemLock:LoadPlugins()
     self.plugin = self:GetModule("PluginArkInventory")
   elseif IsAddOnLoaded("LiteBag") then
     self.plugin = self:GetModule("PluginLiteBag")
+  elseif IsAddOnLoaded("AdiBags") then
+    self.plugin = self:GetModule("PluginAdiBags")
   elseif IsAddOnLoaded("ElvUI") then
     self.plugin = self:GetModule("PluginElvUI")
   else

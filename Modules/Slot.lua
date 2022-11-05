@@ -52,8 +52,11 @@ function Slot:CreateAppearanceOverlay(frame, config)
     })
     frame.lockItemsAppearanceOverlay:SetFrameLevel(20)
     frame.lockItemsAppearanceOverlay:SetBackdropColor(0, 0, 0, 0)
-    frame:RegisterForClicks("LeftButtonUp", "RightButtonUp", "MiddleButtonUp")
-    frame:HookScript('OnClick', buildOnClickHookScript(config))
+
+    if frame.RegisterForClicks then
+      frame:RegisterForClicks("LeftButtonUp", "RightButtonUp", "MiddleButtonUp")
+      frame:HookScript('OnClick', buildOnClickHookScript(config))
+    end
   end
   return frame.lockItemsAppearanceOverlay
 end

@@ -1,9 +1,9 @@
 ## Interface: 30400
 ## Title: ItemLock
 ## Author: Ben Hu
-## Version: 0.10.0
+## Version: 0.11.0
 ## SavedVariables: ItemLockRepo, ItemLockConfig
-## OptionalDeps: Bagnon, Combuctor, ElvUI, ArkInventory, LiteBag
+## OptionalDeps: Bagnon, Combuctor, ElvUI, ArkInventory, LiteBag, AdiBags
 
 Libs.xml
 
