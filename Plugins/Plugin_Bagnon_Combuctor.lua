@@ -1,6 +1,12 @@
 local ItemLock = LibStub("AceAddon-3.0"):GetAddon("ItemLock")
 local PluginBagnonCombuctor = ItemLock:NewModule("PluginBagnonCombuctor")
 
+local GetContainerNumSlots
+if C_Container then
+  GetContainerNumSlots = C_Container.GetContainerNumSlots
+else
+  GetContainerNumSlots = _G.GetContainerNumSlots
+end
 
 local function setupCustomSort(addon, repo, config)
   local GetOrder = addon.Sorting.GetOrder

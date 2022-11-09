@@ -1,6 +1,13 @@
 local ItemLock = LibStub("AceAddon-3.0"):GetAddon("ItemLock")
 local PluginDefault = ItemLock:NewModule("PluginDefault")
 
+local GetContainerNumSlots
+if C_Container then
+  GetContainerNumSlots = C_Container.GetContainerNumSlots
+else
+  GetContainerNumSlots = _G.GetContainerNumSlots
+end
+
 local function handleBagUpdate(bagIndex)
   local bagID = bagIndex + 1
   local bagFrame = _G["ContainerFrame" .. bagID]

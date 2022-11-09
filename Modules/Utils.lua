@@ -1,6 +1,16 @@
 local ItemLock = LibStub("AceAddon-3.0"):GetAddon("ItemLock")
 local Utils = ItemLock:NewModule("Utils")
 
+local GetContainerItemID
+local GetContainerNumSlots
+if C_Container then
+  GetContainerNumSlots = C_Container.GetContainerNumSlots
+  GetContainerItemID = C_Container.GetContainerItemID
+else
+  GetContainerNumSlots = _G.GetContainerNumSlots
+  GetContainerItemID = _G.GetContainerItemID
+end
+
 function Utils:GetTooltipItemID()
   local _itemName, itemLink = GameTooltip:GetItem()
   return self:ItemLinkToItemID(itemLink)
@@ -8,7 +18,7 @@ end
 
 function Utils:ItemLinkToItemID(itemLink)
   if itemLink == nil then return nil end
-  return tonumber(strmatch(itemLink, "item:(%d+):"))
+  return tonumber(string.match(itemLink, "item:(%d+):"))
 end
 
 function Utils:GetEquipmentSetItemIDs()

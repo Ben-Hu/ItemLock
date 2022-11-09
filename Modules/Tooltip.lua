@@ -2,9 +2,15 @@ local ItemLock = LibStub("AceAddon-3.0"):GetAddon("ItemLock")
 local Tooltip = ItemLock:NewModule("Tooltip")
 
 function Tooltip:Init(repo, config)
-  GameTooltip:HookScript("OnTooltipSetItem", function(tooltip)
-    Tooltip:SetGameTooltip(tooltip, repo, config)
-  end)
+  if GameTooltip.OnTooltipSetItem then
+    GameTooltip:HookScript("OnTooltipSetItem", function(tooltip)
+      Tooltip:SetGameTooltip(tooltip, repo, config)
+    end)
+  elseif TooltipDataProcessor then
+    TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, function(tooltip, data)
+      Tooltip:SetGameTooltip(tooltip, repo, config)
+    end)
+  end
 end
 
 function Tooltip:SetGameTooltip(tooltip, repo, config)
