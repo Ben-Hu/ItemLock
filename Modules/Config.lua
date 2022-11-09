@@ -48,6 +48,7 @@ function Config:Defaults()
     sortLock = true,
     equipmentSetLock = true,
     showTooltip = false,
+    lockBonusIds = false,
     logLevel = "WARN",
     lockedBackgroundColor = { 0, 0, 0, 0.5 },
     lockedBorderColor = { 1, 1, 1, 1 },
@@ -156,10 +157,23 @@ function Config:GetOptions()
             get = getFunc(self.db, "clickBindModifier"),
             set = setFunc(self.db, "clickBindModifier"),
           },
+          experimentalHeader = {
+            name = "Experimental Features",
+            type = "header",
+            order = 9,
+          },
+          lockBonusIds = {
+            name = "Lock by Bonus IDs",
+            desc = "Considers item bonus IDs when locking (differentiates between normal/heroic version of items, different secondary stat rolls, indestructible, speed, etc. modifiers)",
+            type = "toggle",
+            order = 10,
+            get = getFunc(self.db, "lockBonusIds"),
+            set = setFunc(self.db, "lockBonusIds"),
+          },
           debugHeader = {
             name = "Debug",
             type = "header",
-            order = 9,
+            order = 11,
           },
           logLevel = {
             name = "Log Level",
@@ -172,7 +186,7 @@ function Config:GetOptions()
               ERROR = "ERROR"
             },
             sorting = { "DEBUG", "INFO", "WARN", "ERROR" },
-            order = 10,
+            order = 12,
             get = getFunc(self.db, "logLevel"),
             set = setFunc(self.db, "logLevel"),
           },

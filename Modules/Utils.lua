@@ -3,12 +3,24 @@ local Utils = ItemLock:NewModule("Utils")
 
 function Utils:GetTooltipItemID()
   local _itemName, itemLink = GameTooltip:GetItem()
+
+  local itemLinkParts = {}
+  for part in string.gmatch(itemLink, "(.-):") do
+    itemLinkParts[#itemLinkParts + 1] = part
+  end
+
+  local bonusIDs = {}
+  local numBonuses = itemLinkParts[14]
+  for bonusOffset = 1, numBonuses do
+    bonusIDs[#bonusIDs + 1] = itemLinkParts[14 + bonusOffset]
+  end
+
   return self:ItemLinkToItemID(itemLink)
 end
 
 function Utils:ItemLinkToItemID(itemLink)
   if itemLink == nil then return nil end
-  return tonumber(strmatch(itemLink, "item:(%d+):"))
+  return tonumber(string.match(itemLink, "item:(%d+):"))
 end
 
 function Utils:GetEquipmentSetItemIDs()
