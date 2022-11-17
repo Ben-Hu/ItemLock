@@ -15,6 +15,7 @@ end
 
 function Tooltip:SetGameTooltip(tooltip, repo, config)
   if not config:IsShowTooltipEnabled() then return end
+  if not tooltip.GetItem then return end
 
   local _itemName, itemLink = tooltip:GetItem()
   local itemID = ItemLock:GetModule("Utils"):ItemLinkToItemID(itemLink)
