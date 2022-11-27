@@ -29,17 +29,8 @@ local function setupCustomSort(addon, repo, config)
     end
   end
 
-  -- overload global sort to use custom sorting if the sort lock feature is enabled.
   if _G.SortBags then
-    local sortBags = _G.SortBags
-
-    function _G.SortBags()
-      if config:IsSortLockEnabled() then
-        addon.Sorting:Start(UnitName('player'), addon.InventoryFrame.Bags)
-      else
-        sortBags()
-      end
-    end
+    addon.sets.serverSort = false
   end
 end
 
@@ -50,7 +41,6 @@ function PluginBagnonCombuctor:Init(repo, config)
     local bagID = slotFrame:GetBag()
     ItemLock:UpdateSlot(bagID, slotFrame)
   end)
-
 
   setupCustomSort(addon, repo, config)
 end
