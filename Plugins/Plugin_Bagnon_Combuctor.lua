@@ -8,6 +8,18 @@ else
   GetContainerNumSlots = _G.GetContainerNumSlots
 end
 
+local function maybeOverrideSortBags(addon)
+  local customSort = function()
+    addon.Sorting:Start(UnitName('player'), addon.InventoryFrame.Bags)
+  end
+
+  if C_Container and C_Container.SortBags then
+    C_Container.SortBags = customSort
+  elseif _G.SortBags then
+    _G.SortBags = customSort
+  end
+end
+
 local function setupCustomSort(addon, repo, config)
   local GetOrder = addon.Sorting.GetOrder
 
@@ -29,9 +41,7 @@ local function setupCustomSort(addon, repo, config)
     end
   end
 
-  if _G.SortBags then
-    addon.sets.serverSort = false
-  end
+  maybeOverrideSortBags(addon)
 end
 
 function PluginBagnonCombuctor:Init(repo, config)
