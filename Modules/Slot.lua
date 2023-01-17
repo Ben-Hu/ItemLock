@@ -85,7 +85,8 @@ function Slot:CreateInteractionOverlay(frame)
     frame.lockItemsInteractionOverlay:SetSize(frame:GetSize())
     frame.lockItemsInteractionOverlay:SetPoint("CENTER")
     frame.lockItemsInteractionOverlay:SetScript("OnMouseDown", function() end)
-    frame.lockItemsInteractionOverlay:SetFrameLevel(0)
+    frame.lockItemsInteractionOverlay:SetFrameLevel(20)
+    frame.lockItemsInteractionOverlay:Hide()
   end
   return frame.lockItemsInteractionOverlay
 end
@@ -142,9 +143,9 @@ end
 
 function Slot:UpdateInteractionOverlay(frame, isInteractable)
   if isInteractable then
-    frame.lockItemsInteractionOverlay:SetFrameLevel(0)
+    frame.lockItemsInteractionOverlay:Hide()
   else
-    frame.lockItemsInteractionOverlay:SetFrameLevel(20)
+    frame.lockItemsInteractionOverlay:Show()
   end
 end
 
