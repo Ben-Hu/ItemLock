@@ -10,7 +10,7 @@ end
 
 local function maybeOverrideSortBags(addon)
   local customSort = function()
-    addon.Sorting:Start(UnitName('player'), addon.InventoryFrame.Bags)
+    addon.Sorting:Start(addon.Inventory)
   end
 
   if C_Container and C_Container.SortBags then
@@ -56,19 +56,14 @@ function PluginBagnonCombuctor:Init(repo, config)
 end
 
 function PluginBagnonCombuctor:GetSlotFrame(bagID, slotIndex)
-  local containerFrameIndex = bagID + 1
-  local itemIndex = GetContainerNumSlots(bagID) - (slotIndex - 1)
+  local bagIndex = bagID - 1
+  local slotOffset = slotIndex
 
-  -- container frames are split into fixed 36 slot chunks
-  -- rather than based on the actual container capacity
-  local slotOffset = slotIndex + 1
-
-  for i = bagID - 1, 0, -1 do
-    slotOffset = slotOffset + GetContainerNumSlots(i)
+  -- Bagnon no longer separates frames by a container frame index
+  -- Slot indexes are contiguous and based on underlying container capacity
+  for containerIndex = 0, bagIndex - 1, 1 do
+    slotOffset = slotOffset + GetContainerNumSlots(containerIndex)
   end
 
-  containerFrameIndex = ceil(slotOffset / 36)
-  itemIndex = slotOffset - (containerFrameIndex - 1) * 36
-
-  return _G["ContainerFrame" .. containerFrameIndex .. "Item" .. itemIndex]
+  return _G["BagnonContainerItem" .. slotOffset]
 end
