@@ -84,20 +84,18 @@ function ItemLock:CONFIG_CHANGED()
 end
 
 function ItemLock:ToggleCurrentItemLock()
-  local itemID = self.utils:GetTooltipItemID()
-  if not itemID then return end
+  local itemLink = self.utils:GetTooltipItemID()
+  if not itemLink then return end
 
-  self.repo:ToggleItemLock(itemID, self.config)
-
-  local itemLink = Item:CreateFromItemID(itemID):GetItemLink()
+  self.repo:ToggleItemLock(itemLink, self.config)
 
   if self.config:IsEquipmentSetLockEnabled() and
-      self.repo:IsItemInEquipmentSet(itemID) then
+      self.repo:IsItemInEquipmentSet(itemLink) then
     self.logger:Info(
       itemLink,
       "belongs to an equipment set and will remain locked as equipment set locking is enabled."
     )
-  elseif self.repo:IsItemLocked(itemID, self.config) then
+  elseif self.repo:IsItemLocked(itemLink, self.config) then
     self.logger:Info("locked", itemLink)
   else
     self.logger:Info("unlocked", itemLink)
@@ -118,9 +116,9 @@ function ItemLock:UpdateSlot(bagID, slotFrame)
   if not slotFrame then return end
 
   local slotID = slotFrame:GetID()
-  local item = Item:CreateFromBagAndSlot(bagID, slotID)
+  local itemLink = C_Container.GetContainerItemLink(bagID, slotID)
 
-  if item:IsItemEmpty() or self.repo:IsItemLocked(item:GetItemID(), self.config) ~= true then
+  if itemLink == nil or self.repo:IsItemLocked(itemLink, self.config) ~= true then
     self.slot:Setup(slotFrame, false, true, self.config)
   else
     local isInteractable = not self.isMerchantOpen or not self.config:IsVendorProtectionEnabled()

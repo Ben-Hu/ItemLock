@@ -50,11 +50,11 @@ function Repo:ToggleItemLock(itemID, config)
   end
 end
 
-function Repo:IsItemLocked(itemID, config)
-  local isLockedItem = self.db.profile.lockedItems[itemID] or false
+function Repo:IsItemLocked(itemLink, config)
+  local isLockedItem = self.db.profile.lockedItems[itemLink] or false
 
   if config:IsEquipmentSetLockEnabled() then
-    local isEquipmentSetItem = self.db.profile.equipmentSetItemIDs[itemID] or false
+    local isEquipmentSetItem = self.db.profile.equipmentSetItemIDs[itemLink] or false
     return isLockedItem or isEquipmentSetItem
   else
     return isLockedItem
