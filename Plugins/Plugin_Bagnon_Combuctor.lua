@@ -28,7 +28,7 @@ local function setupCustomSort(addon, repo, config)
       local newSpaces = {}
 
       for _, space in pairs(spaces) do
-        if space.item == nil or not repo:IsItemLocked(space.item.id, config) then
+        if space.item == nil or not repo:IsItemLocked(space.item.itemID, config) then
           table.insert(newSpaces, space)
         else
           space.item.sorted = true
