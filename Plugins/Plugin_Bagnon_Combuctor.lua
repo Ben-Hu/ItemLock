@@ -57,7 +57,7 @@ end
 
 function PluginBagnonCombuctor:GetSlotFrame(bagID, slotIndex)
   local bagIndex = bagID - 1
-  local slotOffset = slotIndex
+  local slotOffset = slotIndex + 1
 
   -- Bagnon no longer separates frames by a container frame index
   -- Slot indexes are contiguous and based on underlying container capacity
@@ -65,5 +65,5 @@ function PluginBagnonCombuctor:GetSlotFrame(bagID, slotIndex)
     slotOffset = slotOffset + GetContainerNumSlots(containerIndex)
   end
 
-  return _G["BagnonContainerItem" .. slotOffset]
+  return _G["ContainerFrame1Item" .. slotOffset]
 end
